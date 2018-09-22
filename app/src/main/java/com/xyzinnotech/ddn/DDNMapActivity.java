@@ -79,6 +79,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
     private ArrayList<Feature> featureList;
     private Projection projection;
     private String selectedDdn;
+    private Feature selectedFeature;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +160,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
                         List<Feature> features = map.queryRenderedFeatures(rectF, BUILDINGS_FILL_LAYER);
                         if (!features.isEmpty()) {
+                            selectedFeature = features.get(0);
                             selectedDdn = features.get(0).getStringProperty("ddn");
                             ddnText.setText(selectedDdn);
                             highlightLayer.setFilter(eq(get("ddn"), literal(selectedDdn)));
@@ -166,6 +168,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                             setCameraPosition(latLng.getLatitude(), latLng.getLongitude());
                             addMarker(selectedDdn, null, latLng);
                         } else {
+                            selectedFeature = null;
                             selectedDdn = null;
                             ddnText.setText(null);
                             highlightLayer.setFilter(eq(get("ddn"), literal("")));
@@ -231,7 +234,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
     private void addMarker(String title, String subtitle, LatLng latLng) {
         List<Marker> markers = map.getMarkers();
-        for(Marker m : markers) {
+        for (Marker m : markers) {
             m.remove();
         }
         IconFactory iconFactory = IconFactory.getInstance(this);
@@ -367,8 +370,12 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
     }
 
     public void detailsView(View view) {
-        Intent intent = new Intent(this, RegionsListActivity.class);
-        intent.putExtra("ddn", selectedDdn);
-        startActivity(intent);
+        if (selectedFeature != null) {
+            Intent intent = new Intent(this, DwellingsListActivity.class);
+            intent.putExtra("ddn", selectedDdn);
+            intent.putExtra("project", mRegion.getProjectId());
+            intent.putExtra("feature", selectedFeature.toJson());
+            startActivity(intent);
+        }
     }
 }

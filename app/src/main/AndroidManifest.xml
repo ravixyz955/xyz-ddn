@@ -35,6 +35,7 @@
         <activity
             android:name=".DDNMapActivity"
             android:parentActivityName=".RegionsListActivity" />
+        <activity android:name=".DwellingsListActivity"></activity>
     </application>
 
 </manifest>
