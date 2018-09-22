@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
-import com.xyzinnotech.ddn.model.Dwelling;
+import com.mapbox.geojson.Feature;
 
 /**
  * Created by KT on 28/12/15.
@@ -22,7 +22,7 @@ public class DataUtils {
     private static final String KEY_ACTIVE = "key_active";
     private static final String KEY_DWELLING = "key_active";
     private static final String USER_PREF = "user_pref";
-    private static final String DWELLING_PREF = "dwelling_pref";
+    private static final String FEATURE_PREF = "feature_pref";
 
     public static void saveName(Context mContext, String name) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(USER_PREF, Context.MODE_PRIVATE);
@@ -133,20 +133,22 @@ public class DataUtils {
         return sharedPreferences.getBoolean(KEY_ACTIVE, false);
     }
 
-    public static void saveDwelling(Context mContext, String dwellingJson) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(DWELLING_PREF, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(KEY_DWELLING, dwellingJson);
-        editor.apply();
+    public static void saveFeature(Context mContext, Feature feature, String ddn) {
+        if(feature != null) {
+            SharedPreferences sharedPreferences = mContext.getSharedPreferences(FEATURE_PREF, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(ddn, feature.toJson());
+            editor.apply();
+        }
     }
 
-    public static Dwelling getDwelling(Context mContext) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(DWELLING_PREF, Context.MODE_PRIVATE);
-        String dwellingJson = sharedPreferences.getString(KEY_DWELLING, null);
-        Dwelling dwelling = null;
-        if(dwellingJson != null) {
-            dwelling = new Gson().fromJson(dwellingJson, Dwelling.class);
+    public static Feature getFeature(Context mContext, String ddn) {
+        SharedPreferences sharedPreferences = mContext.getSharedPreferences(FEATURE_PREF, Context.MODE_PRIVATE);
+        String featureJson = sharedPreferences.getString(ddn, null);
+        Feature feature = null;
+        if(featureJson != null) {
+            feature = new Gson().fromJson(featureJson, Feature.class);
         }
-        return dwelling;
+        return feature;
     }
 }
