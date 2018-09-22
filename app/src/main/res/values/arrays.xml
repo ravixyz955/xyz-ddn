@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="flight_plan_duration">
+        <item>30 mins</item>
+        <item>60 mins</item>
+        <item>90 mins</item>
+        <item>120 mins</item>
+        <item>150 mins</item>
+        <item>180 mins</item>
+        <item>210 mins</item>
+        <item>240 mins</item>
+    </string-array>
+
+    <string-array name="dwelling_type">
+        <item>Residential</item>
+        <item>Commercial</item>
+        <item>Mixed</item>
+        <item>Vacant</item>
+        <item>State Govt.</item>
+        <item>Central Govt.</item>
+        <item>Industrial</item>
+        <item>Transportation</item>
+        <item>Recreation</item>
+        <item>Health Service</item>
+        <item>Education</item>
+        <item>Cremation</item>
+        <item>Abandoned</item>
+        <item>Historical</item>
+        <item>Religious</item>
+        <item>Under Construction</item>
+        <item>Other</item>
+    </string-array>
+</resources>
