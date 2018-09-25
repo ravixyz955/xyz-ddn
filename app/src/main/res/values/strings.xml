@@ -12,5 +12,27 @@
     <string name="tap_on_mic">Tap on mic to speak</string>
     <string name="details">DETAILS</string>
     <string name="hint_click_building">Click on building</string>
-
+    <string name="hint_block">Block</string>
+    <string name="hint_floor">Floor</string>
+    <string name="hint_flat">Flat#</string>
+    <string name="hint_owner_name">Owner Name</string>
+    <string name="hint_owner_aadhar">Owner Aadhar</string>
+    <string name="hint_full_address">Full Address</string>
+    <string name="hint_landmark">Landmark</string>
+    <string name="hint_town">Village/Town Name</string>
+    <string name="hint_mandal">Mandal Name</string>
+    <string name="hint_district">District Name</string>
+    <string name="hint_pincode">Pincode</string>
+    <string name="hint_dwelling_type">Dwelling Type</string>
+    <string name="hint_structural_type">Structural Type</string>
+    <string name="hint_assessment_number">Assesment Number</string>
+    <string name="hint_emenities">Emenities</string>
+    <string name="hint_electricity">Electricity</string>
+    <string name="hint_parking">Parking</string>
+    <string name="hint_toilets">Toilets</string>
+    <string name="hint_water_connection">Water Connection</string>
+    <string name="hint_wells">Wells</string>
+    <string name="hint_rwh">Rain Water Harvesting</string>
+    <string name="hint_lgd_code">LGD Code</string>
+    <string name="hint_dwellings_empty">Dwellings not assigned yet</string>
 </resources>

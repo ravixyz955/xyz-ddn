@@ -5,6 +5,8 @@ import android.app.Application;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.xyzinnotech.ddn.utils.GoogleApiHelper;
 
+import io.realm.Realm;
+
 public class DDNApplication extends Application {
 
     private GoogleApiHelper googleApiHelper;
@@ -17,6 +19,8 @@ public class DDNApplication extends Application {
         super.onCreate();
 
         mInstance = this;
+
+        Realm.init(this);
 
         googleApiHelper = new GoogleApiHelper(mInstance);
 

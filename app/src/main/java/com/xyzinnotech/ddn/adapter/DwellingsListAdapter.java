@@ -2,6 +2,8 @@ package com.xyzinnotech.ddn.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,54 +12,67 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.xyzinnotech.ddn.DDNMapActivity;
 import com.xyzinnotech.ddn.R;
+import com.xyzinnotech.ddn.SingleFragmentActivity;
 import com.xyzinnotech.ddn.model.Dwelling;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import io.realm.OrderedRealmCollection;
+import io.realm.RealmList;
+import io.realm.RealmRecyclerViewAdapter;
+
+import static com.xyzinnotech.ddn.SingleFragmentActivity.KEY_SINGLE_FRAGMENT;
 
 /**
  * Created by apple on 23/01/18.
  */
 
-public class DwellingsListAdapter extends RecyclerView.Adapter<DwellingsListAdapter.RegionViewHolder>
+public class DwellingsListAdapter extends RealmRecyclerViewAdapter<Dwelling, DwellingsListAdapter.DwellingViewHolder>
         implements Filterable {
 
     private Context mContext;
 
-    private ArrayList<Dwelling> mDwellings;
+    private String ddn;
 
-    private ArrayList<Dwelling> mFilteredDwellings;
+    private OrderedRealmCollection<Dwelling> mDwellings;
 
-    public DwellingsListAdapter(Context mContext, ArrayList<Dwelling> regions) {
+    private OrderedRealmCollection<Dwelling> mFilteredDwellings;
+
+    public DwellingsListAdapter(@Nullable OrderedRealmCollection<Dwelling> data, Context mContext, String ddn) {
+        super(data, true);
+        this.mDwellings = data;
+        this.mFilteredDwellings = data;
         this.mContext = mContext;
-        this.mDwellings = regions;
-        this.mFilteredDwellings = mDwellings;
+        this.ddn = ddn;
     }
 
+    @NonNull
     @Override
-    public RegionViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public DwellingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.dwelling_list_item_view, null);
-        return new RegionViewHolder(view);
+        return new DwellingViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(RegionViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull DwellingViewHolder holder, int position) {
         Dwelling mDwelling = this.mFilteredDwellings.get(position);
+        holder.prefix.setText(String.format("%s%s%s", mDwelling.getBlock(), mDwelling.getFloor(), mDwelling.getFlatNo()));
         holder.name.setText(mDwelling.getOwnerName());
+        holder.type.setText(mDwelling.getDwellignType());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        holder.date.setText(formatter.format(new Date(mDwelling.getUpdatedAt())));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mContext, DDNMapActivity.class);
+                Intent intent = new Intent(mContext, SingleFragmentActivity.class);
+                intent.putExtra("ddn", ddn);
                 intent.putExtra(Dwelling.class.getName(), mDwelling);
-//                mContext.startActivity(intent);
+                intent.putExtra(KEY_SINGLE_FRAGMENT, SingleFragmentActivity.FragmentName.DWELLINGDETAILS);
+                mContext.startActivity(intent);
             }
         });
-    }
-
-    @Override
-    public int getItemCount() {
-        return this.mFilteredDwellings.size();
     }
 
     @Override
@@ -69,7 +84,7 @@ public class DwellingsListAdapter extends RecyclerView.Adapter<DwellingsListAdap
                 if (charString.isEmpty()) {
                     mFilteredDwellings = mDwellings;
                 } else {
-                    ArrayList<Dwelling> filteredList = new ArrayList<>();
+                    OrderedRealmCollection<Dwelling> filteredList = new RealmList<>();
                     for (Dwelling row : mDwellings) {
                         if (row.getOwnerName().toLowerCase().contains(charString.toLowerCase())) {
                             filteredList.add(row);
@@ -85,21 +100,28 @@ public class DwellingsListAdapter extends RecyclerView.Adapter<DwellingsListAdap
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                mFilteredDwellings = (ArrayList<Dwelling>) filterResults.values;
+                mFilteredDwellings = (OrderedRealmCollection<Dwelling>) filterResults.values;
                 notifyDataSetChanged();
             }
         };
     }
 
-    class RegionViewHolder extends RecyclerView.ViewHolder {
+
+    class DwellingViewHolder extends RecyclerView.ViewHolder {
 
         View itemView;
+        TextView prefix;
         TextView name;
+        TextView type;
+        TextView date;
 
-        RegionViewHolder(View itemView) {
+        DwellingViewHolder(View itemView) {
             super(itemView);
             this.itemView = itemView;
+            prefix = itemView.findViewById(R.id.dwelling_list_item_prefix);
             name = itemView.findViewById(R.id.dwelling_list_item_name);
+            type = itemView.findViewById(R.id.dwelling_list_item_type);
+            date = itemView.findViewById(R.id.dwelling_list_item_date);
         }
     }
 }

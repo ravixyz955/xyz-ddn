@@ -25,6 +25,7 @@
         <activity
             android:name=".RegionsListActivity"
             android:label="Regions List"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,8 +35,15 @@
         </activity>
         <activity
             android:name=".DDNMapActivity"
-            android:parentActivityName=".RegionsListActivity" />
-        <activity android:name=".DwellingsListActivity"></activity>
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".DwellingsListActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".SingleFragmentActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
