@@ -2,7 +2,12 @@ package com.xyzinnotech.ddn;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -14,17 +19,43 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.google.android.gms.common.data.DataBufferObserver;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import com.xyzinnotech.ddn.fragment.RegionsListFragment;
+import com.xyzinnotech.ddn.model.Dwelling;
+import com.xyzinnotech.ddn.network.RemoteServerAPI;
+import com.xyzinnotech.ddn.network.service.DataSyncAPIService;
 import com.xyzinnotech.ddn.utils.DataUtils;
+import com.xyzinnotech.ddn.utils.NetworkUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Observable;
+
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 public class RegionsListActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -32,6 +63,12 @@ public class RegionsListActivity extends AppCompatActivity implements Navigation
 
     private FloatingSearchView mSearchView;
     private RegionsListFragment regionsListFragment;
+    private DataSyncAPIService dataSyncAPIService;
+    private String apiKey = "W8BcdRqxTaA1XT3jgzLOz6g8qJKO8Gx7";
+    private Realm mRealm;
+    private static Realm refRealm;
+    public static Context context;
+    private static Toast t;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +77,18 @@ public class RegionsListActivity extends AppCompatActivity implements Navigation
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mSearchView = findViewById(R.id.floating_search_view);
+        context = this;
+
+        dataSyncAPIService = NetworkUtils.provideDataSyncAPIService(this);
+        t = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+        t.getView().setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#009688")));
+        mRealm = Realm.getDefaultInstance();
+        refRealm = mRealm;
+
+        if (NetworkUtils.isConnectingToInternet(this)) {
+//            Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+            syncData(dataSyncAPIService);
+        }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -84,7 +133,14 @@ public class RegionsListActivity extends AppCompatActivity implements Navigation
         mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
-                if (item.getItemId() == R.id.action_settings) {
+                if (item.getItemId() == R.id.action_sync) {
+                    if (NetworkUtils.isConnectingToInternet(RegionsListActivity.this)) {
+                        syncData(dataSyncAPIService);
+                    } else {
+//                        Toast.makeText(RegionsListActivity.this, "No Network", Toast.LENGTH_SHORT).show();
+                        t.setText("No Network");
+                        t.show();
+                    }
                 } else if (item.getItemId() == R.id.action_voice_rec) {
                     promptSpeechInput();
                 }
@@ -134,11 +190,61 @@ public class RegionsListActivity extends AppCompatActivity implements Navigation
     }
 
     /**
+     * sync data
+     *
+     * @param dataSyncAPIService
+     */
+    public void syncData(DataSyncAPIService dataSyncAPIService) {
+        if (dataSyncAPIService != null) {
+
+            RealmResults<Dwelling> realmResults = refRealm.where(Dwelling.class).equalTo("offset", 1).findAll();
+            Gson gson = new Gson();
+            if (realmResults.size() > 0) {
+                String json = gson.toJson(refRealm.copyFromRealm(realmResults));
+                JsonArray jsonArray = new Gson().fromJson(json, JsonArray.class);
+
+                dataSyncAPIService.getPutList(jsonArray, apiKey).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Response<Void> response, Retrofit retrofit) {
+                        if (response.isSuccess()) {
+                            t.setText("sync success!");
+                            t.show();
+//                            Toast.makeText(context, "sync success!!", Toast.LENGTH_SHORT).show();
+                            refRealm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    for (Dwelling dwelling : realmResults) {
+                                        dwelling.setOffset(0);
+                                    }
+                                }
+                            });
+                        } else {
+                            try {
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Toast.makeText(RegionsListActivity.this, "" + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                t.setText("Remote DB is up-to-date");
+                t.show();
+//                Toast.makeText(this, "Remote DB is up-to-date", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
      * Showing google speech input dialog
      */
     private void promptSpeechInput() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speech_prompt));
         try {
@@ -161,7 +267,7 @@ public class RegionsListActivity extends AppCompatActivity implements Navigation
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     String searchText = result.get(0);
                     mSearchView.setSearchText(searchText);
-                    if(searchText != null && regionsListFragment != null) {
+                    if (searchText != null && regionsListFragment != null) {
                         regionsListFragment.applyFilter(searchText);
                     }
                 }

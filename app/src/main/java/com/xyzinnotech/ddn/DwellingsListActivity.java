@@ -30,6 +30,7 @@ public class DwellingsListActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(DwellingsListActivity.this, SingleFragmentActivity.class);
                 intent.putExtra("ddn", getIntent().getStringExtra("ddn"));
+                intent.putExtra("insert", "insert");
                 intent.putExtra(KEY_SINGLE_FRAGMENT, SingleFragmentActivity.FragmentName.DWELLINGDETAILS);
                 startActivity(intent);
             }

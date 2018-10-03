@@ -18,6 +18,7 @@ import retrofit.http.Multipart;
 import retrofit.http.POST;
 import retrofit.http.Part;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
 /**
  * Created by KT on 23/12/15.
@@ -44,4 +45,10 @@ public interface RemoteServerAPI {
 
     @GET("https://s3.ap-south-1.amazonaws.com/xyz-config/ddn.json")
     Call<ArrayList<Region>> loadRegionsList();
+
+    @GET("/api/1/databases/xyz-ddn/collections/dwellings")
+    Call<Object> getDwellingList(@Query("apiKey") String apiKey);
+
+    @POST("/api/1/databases/xyz-ddn/collections/dwellings")
+    Call<Void> getPutList(@Body com.google.gson.JsonArray requestBody, @Query("apiKey") String apiKey);
 }

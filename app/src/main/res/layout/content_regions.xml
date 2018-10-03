@@ -9,5 +9,4 @@
     tools:context=".RegionsListActivity"
     tools:showIn="@layout/app_bar_regions_list">
 
-
 </FrameLayout>

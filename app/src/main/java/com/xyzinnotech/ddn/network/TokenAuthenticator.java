@@ -37,8 +37,8 @@ public class TokenAuthenticator implements Authenticator {
     public Request authenticate(Proxy proxy, Response response) throws IOException {
         // Refresh your access_token using a synchronous api request
 
-        if(!TextUtils.isEmpty(DataUtils.getEmail(mContext))) {
-            if(!response.request().url().getPath().endsWith("/authenticate")) {
+        if (!TextUtils.isEmpty(DataUtils.getEmail(mContext))) {
+            if (!response.request().url().getPath().endsWith("/authenticate")) {
                 AuthenticateUserRequest authenticateUserRequest = new AuthenticateUserRequest();
                 authenticateUserRequest.setEmail(DataUtils.getEmail(mContext));
                 authenticateUserRequest.setPassword(DataUtils.getPassword(mContext));

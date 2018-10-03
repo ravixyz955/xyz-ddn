@@ -61,7 +61,7 @@ public class RegionsListFragment extends Fragment {
             @Override
             public void onResponse(Response<ArrayList<Region>> response, Retrofit retrofit) {
                 mProgressBar.setVisibility(View.GONE);
-                if(response.isSuccess()) {
+                if (response.isSuccess()) {
                     Log.i("TKTR", response.body().toString());
                     regionsListAdapter = new RegionsListAdapter(getActivity(), response.body());
                     mRegionsRecycler.setAdapter(regionsListAdapter);
@@ -83,7 +83,7 @@ public class RegionsListFragment extends Fragment {
     }
 
     public void applyFilter(String query) {
-        if(regionsListAdapter != null) {
+        if (regionsListAdapter != null) {
             regionsListAdapter.getFilter().filter(query);
         }
     }

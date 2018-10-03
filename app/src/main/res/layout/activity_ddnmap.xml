@@ -17,9 +17,9 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_gravity="bottom"
+        android:background="@drawable/drop_shadow_top"
         android:clickable="true"
         android:onClick="detailsView"
-        android:background="@drawable/drop_shadow_top"
         android:padding="@dimen/activity_horizontal_margin">
 
         <TextView

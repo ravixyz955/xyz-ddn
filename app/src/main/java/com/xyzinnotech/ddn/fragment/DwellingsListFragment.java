@@ -104,7 +104,6 @@ public class DwellingsListFragment extends Fragment {
         } else if (id == R.id.action_download_map) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

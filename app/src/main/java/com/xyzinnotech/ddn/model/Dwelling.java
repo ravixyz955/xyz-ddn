@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class Dwelling extends RealmObject implements Parcelable {
 
@@ -22,11 +23,16 @@ public class Dwelling extends RealmObject implements Parcelable {
         }
     };
 
+    @PrimaryKey
+    private String CompositePrimaryKey;
+
     private long createdAt;
 
     private long updatedAt;
 
     private String ddn;
+
+    private int offset;
 
     private String block;
 
@@ -62,6 +68,7 @@ public class Dwelling extends RealmObject implements Parcelable {
     }
 
     private Dwelling(Parcel in) {
+        CompositePrimaryKey = in.readString();
         createdAt = in.readLong();
         updatedAt = in.readLong();
         ddn = in.readString();
@@ -85,6 +92,7 @@ public class Dwelling extends RealmObject implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(CompositePrimaryKey);
         dest.writeLong(createdAt);
         dest.writeLong(updatedAt);
         dest.writeString(ddn);
@@ -198,6 +206,15 @@ public class Dwelling extends RealmObject implements Parcelable {
         this.town = town;
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+
     public String getMandal() {
         return mandal;
     }
@@ -257,5 +274,13 @@ public class Dwelling extends RealmObject implements Parcelable {
     @Override
     public String toString() {
         return new Gson().toJson(this);
+    }
+
+    public String getCompositePrimaryKey() {
+        return CompositePrimaryKey;
+    }
+
+    public void setCompositePrimaryKey(String compositePrimaryKey) {
+        CompositePrimaryKey = compositePrimaryKey;
     }
 }

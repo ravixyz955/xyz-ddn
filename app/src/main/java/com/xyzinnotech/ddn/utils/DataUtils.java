@@ -134,7 +134,7 @@ public class DataUtils {
     }
 
     public static void saveFeature(Context mContext, Feature feature, String ddn) {
-        if(feature != null) {
+        if (feature != null) {
             SharedPreferences sharedPreferences = mContext.getSharedPreferences(FEATURE_PREF, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(ddn, feature.toJson());
@@ -146,7 +146,7 @@ public class DataUtils {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(FEATURE_PREF, Context.MODE_PRIVATE);
         String featureJson = sharedPreferences.getString(ddn, null);
         Feature feature = null;
-        if(featureJson != null) {
+        if (featureJson != null) {
             feature = new Gson().fromJson(featureJson, Feature.class);
         }
         return feature;

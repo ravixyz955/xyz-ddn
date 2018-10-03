@@ -22,6 +22,8 @@ import com.xyzinnotech.ddn.network.RemoteServerAPI;
 import com.xyzinnotech.ddn.network.TokenAuthenticator;
 import com.xyzinnotech.ddn.network.service.DDNAPIService;
 import com.xyzinnotech.ddn.network.service.DDNAPIServiceImpl;
+import com.xyzinnotech.ddn.network.service.DataSyncAPIService;
+import com.xyzinnotech.ddn.network.service.DataSyncAPIServiceImpl;
 import com.xyzinnotech.ddn.network.service.UserAPIService;
 import com.xyzinnotech.ddn.network.service.UserAPIServiceImpl;
 
@@ -40,12 +42,17 @@ public class NetworkUtils {
     private static final String BASE_URL = "https://" + SERVER_IP + "";
     private static final String BASE_CONTEXT = "/api";
 
+    private static final String DAYASYNC_SERVER_IP = "api.mlab.com";
+    private static final String DAYASYNC_BASE_CONTEXT = "/api/1/databases/xyz-ddn/";
+    private static final String DATASYNC_BASE_URL = "https://" + DAYASYNC_SERVER_IP + "";
+
     private static GsonBuilder gsonBuilder;
     private static OkHttpClient okHttpClient;
     private static Retrofit retrofit;
     private static RemoteServerAPI remoteServerAPI;
     private static UserAPIService userAPIService;
     private static DDNAPIService ddnAPIService;
+    private static DataSyncAPIService dataSyncAPIService;
 
     public static boolean isConnectingToInternet(Context _context) {
         ConnectivityManager connectivity = (ConnectivityManager) _context
@@ -116,6 +123,12 @@ public class NetworkUtils {
         return remoteServerAPI;
     }
 
+    private static RemoteServerAPI provideDatasyncServerAPI(Context mContext) {
+        if (remoteServerAPI == null)
+            remoteServerAPI = provideRetrofit(mContext, DATASYNC_BASE_URL, true).create(RemoteServerAPI.class);
+        return remoteServerAPI;
+    }
+
     public static UserAPIService provideUserAPIService(Context mContext) {
         if (userAPIService == null)
             userAPIService = new UserAPIServiceImpl(provideServerAPI(mContext));
@@ -126,6 +139,13 @@ public class NetworkUtils {
         if (ddnAPIService == null)
             ddnAPIService = new DDNAPIServiceImpl(provideServerAPI(mContext));
         return ddnAPIService;
+    }
+
+    public static DataSyncAPIService provideDataSyncAPIService(Context mContext) {
+        if (dataSyncAPIService == null) {
+            dataSyncAPIService = new DataSyncAPIServiceImpl(provideDatasyncServerAPI(mContext));
+        }
+        return dataSyncAPIService;
     }
 
     public static String provideAvatarUrl(String mobile) {
