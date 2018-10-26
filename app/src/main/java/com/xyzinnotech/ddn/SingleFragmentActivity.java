@@ -1,17 +1,21 @@
 package com.xyzinnotech.ddn;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.xyzinnotech.ddn.fragment.DwellingDetailsFragment;
 
@@ -25,7 +29,6 @@ public class SingleFragmentActivity extends AppCompatActivity {
     private static final String DELETE = "delete";
     String ddn;
     Bundle extras;
-    Activity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +64,12 @@ public class SingleFragmentActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.icon_menu, menu);
+        if (getIntent().hasExtra("insert")) {
+            //do nothing
+        } else {
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.icon_menu, menu);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -74,21 +81,38 @@ public class SingleFragmentActivity extends AppCompatActivity {
                 DwellingDetailsFragment frgmt = new DwellingDetailsFragment();
                 Bundle bundle = new Bundle();
                 bundle.putString("delete", DELETE);
-                frgmt.removeListItem();
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.replace(R.id.singlefragment_container, frgmt);
-                fragmentTransaction.commit();
-                finish();
 
-                break;
+                AlertDialog.Builder dialog = new AlertDialog.Builder(SingleFragmentActivity.this);
+                dialog.setCancelable(false);
+                dialog.setMessage("Are you sure you want to delete this entry?");
+                dialog.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        //Action for "Delete".
+                        frgmt.removeListItem();
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.singlefragment_container, frgmt);
+                        fragmentTransaction.commit();
+                        finish();
+                    }
+                })
+                        .setNegativeButton("Cancel ", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Action for "Cancel".
+                            }
+                        });
+                final AlertDialog alert = dialog.create();
+                alert.show();
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void setToolbarTitle(String title) {
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
-        collapsingToolbarLayout.setTitle(title);
+        collapsingToolbarLayout.setTitleEnabled(false);
+        setTitle(title);
     }
 
     public Fragment getFragmentByName(FragmentName name) {

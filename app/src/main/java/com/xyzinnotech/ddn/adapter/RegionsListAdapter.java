@@ -2,7 +2,10 @@ package com.xyzinnotech.ddn.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +18,12 @@ import com.squareup.picasso.Picasso;
 import com.xyzinnotech.ddn.DDNMapActivity;
 import com.xyzinnotech.ddn.R;
 import com.xyzinnotech.ddn.network.model.Region;
+import com.xyzinnotech.ddn.utils.NetworkUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by apple on 23/01/18.
@@ -46,14 +53,33 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
     @Override
     public void onBindViewHolder(RegionViewHolder holder, int position) {
         Region mRegion = this.mFilteredRegions.get(position);
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date();
         holder.name.setText(mRegion.getName());
-        Picasso.get().load(mRegion.getImage()).into(holder.image);
+        if (!NetworkUtils.isConnectingToInternet(mContext)) {
+//            Log.d("ENCODED", "onBindViewHolder: " + mRegion.getImage());
+            byte[] b = Base64.decode(mRegion.getImage(), Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
+            holder.image.setImageBitmap(bitmap);
+            holder.date.setText(dateFormat.format(date));
+        } else {
+            Picasso.get().load(mRegion.getImage()).into(holder.image);
+            holder.date.setText(dateFormat.format(date));
+        }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mContext, DDNMapActivity.class);
-                intent.putExtra(Region.class.getName(), mRegion);
-                mContext.startActivity(intent);
+                if (NetworkUtils.isConnectingToInternet(mContext)) {
+
+                    Intent intent = new Intent(mContext, DDNMapActivity.class);
+                    intent.putExtra(Region.class.getName(), mRegion);
+                    mContext.startActivity(intent);
+                } else {
+                    Intent intent = new Intent(mContext, DDNMapActivity.class);
+                    intent.putExtra("index", position);
+                    mContext.startActivity(intent);
+//                    mContext.startActivity(new Intent(mContext, DDNMapActivity.class));
+                }
             }
         });
     }
@@ -98,6 +124,7 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
 
         View itemView;
         TextView name;
+        TextView date;
         ImageView image;
 
         RegionViewHolder(View itemView) {
@@ -105,6 +132,7 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
             this.itemView = itemView;
             name = itemView.findViewById(R.id.region_list_item_name);
             image = itemView.findViewById(R.id.region_list_item_image);
+            date = itemView.findViewById(R.id.region_list_item_date);
         }
     }
 }

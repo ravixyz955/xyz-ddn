@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_download_map"
-        android:title="@string/action_download_map"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_download_map"
+        android:icon="@drawable/ic_file_download_white_24dp"
         android:orderInCategory="1"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_file_download_white_24dp"/>
+        android:title="@string/action_download_map"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_showlist_dwelling"
+        android:checkable="true"
+        android:icon="@drawable/ic_visibility_off_white_24dp"
+        android:orderInCategory="2"
+        android:title="@string/action_showlist_dwelling"
+        app:showAsAction="always" />
 </menu>

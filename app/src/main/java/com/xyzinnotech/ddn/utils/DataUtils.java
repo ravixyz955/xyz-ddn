@@ -23,6 +23,9 @@ public class DataUtils {
     private static final String KEY_DWELLING = "key_active";
     private static final String USER_PREF = "user_pref";
     private static final String FEATURE_PREF = "feature_pref";
+    public static final double latitude=16.95569061263034;
+    public static final double longitude=81.45561669191216;
+    public static final int zoom=18;
 
     public static void saveName(Context mContext, String name) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(USER_PREF, Context.MODE_PRIVATE);

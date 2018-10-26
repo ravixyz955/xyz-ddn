@@ -10,12 +10,24 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_cameraZoom="18" />
+        mapbox:mapbox_cameraZoom="18"
+        mapbox:mapbox_cameraTargetLat="16.95569061263034"
+        mapbox:mapbox_cameraTargetLng="81.45561669191216"
+        mapbox:mapbox_cameraTilt="10"/>
+
+    <ProgressBar
+        android:id="@+id/offline_download_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
+        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/map_ddn_layout"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="?android:attr/actionBarSize"
         android:layout_gravity="bottom"
         android:background="@drawable/drop_shadow_top"
         android:clickable="true"
@@ -28,6 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:hint="@string/hint_click_building"
+            android:textColor="@android:color/darker_gray"
             tools:text="133C.150.33.ELR.AP06" />
 
         <TextView

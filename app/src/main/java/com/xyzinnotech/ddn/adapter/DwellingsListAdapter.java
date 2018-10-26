@@ -11,14 +11,11 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
-
 import com.xyzinnotech.ddn.R;
 import com.xyzinnotech.ddn.SingleFragmentActivity;
 import com.xyzinnotech.ddn.model.Dwelling;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmList;
 import io.realm.RealmRecyclerViewAdapter;
@@ -68,6 +65,7 @@ public class DwellingsListAdapter extends RealmRecyclerViewAdapter<Dwelling, Dwe
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, SingleFragmentActivity.class);
                 intent.putExtra("ddn", ddn);
+                intent.putExtra("editable", true);
                 intent.putExtra(Dwelling.class.getName(), mDwelling);
                 intent.putExtra(KEY_SINGLE_FRAGMENT, SingleFragmentActivity.FragmentName.DWELLINGDETAILS);
                 mContext.startActivity(intent);

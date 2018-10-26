@@ -44,17 +44,8 @@ public class Dwelling extends RealmObject implements Parcelable {
 
     private String ownerAadhar;
 
-    private String address;
 
     private String landmark;
-
-    private String town;
-
-    private String mandal;
-
-    private String district;
-
-    private String pincode;
 
     private String dwellignType;
 
@@ -62,7 +53,7 @@ public class Dwelling extends RealmObject implements Parcelable {
 
     private String structuralType;
 
-    private RealmList<String> emenities;
+    private RealmList<String> amenities;
 
     public Dwelling() {
     }
@@ -77,17 +68,12 @@ public class Dwelling extends RealmObject implements Parcelable {
         flatNo = in.readString();
         ownerName = in.readString();
         ownerAadhar = in.readString();
-        address = in.readString();
         landmark = in.readString();
-        town = in.readString();
-        mandal = in.readString();
-        district = in.readString();
-        pincode = in.readString();
         dwellignType = in.readString();
         assessmentNo = in.readString();
         structuralType = in.readString();
-        emenities = new RealmList<>();
-        emenities.addAll(in.createStringArrayList());
+        amenities = new RealmList<>();
+        amenities.addAll(in.createStringArrayList());
     }
 
     @Override
@@ -101,16 +87,11 @@ public class Dwelling extends RealmObject implements Parcelable {
         dest.writeString(flatNo);
         dest.writeString(ownerName);
         dest.writeString(ownerAadhar);
-        dest.writeString(address);
         dest.writeString(landmark);
-        dest.writeString(town);
-        dest.writeString(mandal);
-        dest.writeString(district);
-        dest.writeString(pincode);
         dest.writeString(dwellignType);
         dest.writeString(assessmentNo);
         dest.writeString(structuralType);
-        dest.writeStringList(emenities);
+        dest.writeStringList(amenities);
     }
 
     @Override
@@ -182,14 +163,6 @@ public class Dwelling extends RealmObject implements Parcelable {
         this.ownerAadhar = ownerAadhar;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
     public String getLandmark() {
         return landmark;
     }
@@ -198,45 +171,12 @@ public class Dwelling extends RealmObject implements Parcelable {
         this.landmark = landmark;
     }
 
-    public String getTown() {
-        return town;
-    }
-
-    public void setTown(String town) {
-        this.town = town;
-    }
-
     public int getOffset() {
         return offset;
     }
 
     public void setOffset(int offset) {
         this.offset = offset;
-    }
-
-
-    public String getMandal() {
-        return mandal;
-    }
-
-    public void setMandal(String mandal) {
-        this.mandal = mandal;
-    }
-
-    public String getDistrict() {
-        return district;
-    }
-
-    public void setDistrict(String district) {
-        this.district = district;
-    }
-
-    public String getPincode() {
-        return pincode;
-    }
-
-    public void setPincode(String pincode) {
-        this.pincode = pincode;
     }
 
     public String getDwellignType() {
@@ -263,12 +203,12 @@ public class Dwelling extends RealmObject implements Parcelable {
         this.structuralType = structuralType;
     }
 
-    public RealmList<String> getEmenities() {
-        return emenities;
+    public RealmList<String> getAmenities() {
+        return amenities;
     }
 
-    public void setEmenities(RealmList<String> emenities) {
-        this.emenities = emenities;
+    public void setAmenities(RealmList<String> amenities) {
+        this.amenities = amenities;
     }
 
     @Override

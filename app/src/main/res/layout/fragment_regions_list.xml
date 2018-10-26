@@ -4,16 +4,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragment.RegionsListFragment">
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/rl">
+    <TextView
+        android:id="@+id/offline_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="5dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:background="@drawable/offline_bg"
+        android:text="@string/offline_text"
+        android:visibility="visible" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/regions_list_recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
+        android:layout_below="@+id/offline_text"
         tools:context=".fragment.RegionsListFragment">
 
     </android.support.v7.widget.RecyclerView>
 
     <include layout="@layout/progress_bar" />
-
+</RelativeLayout>
 </FrameLayout>

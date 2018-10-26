@@ -12,7 +12,7 @@
     </string-array>
 
     <string-array name="dwelling_type">
-        <item>-- Dwelling Type --</item>
+        <item>-- Select --</item>
         <item>Residential</item>
         <item>Commercial</item>
         <item>Mixed</item>
@@ -33,7 +33,7 @@
     </string-array>
 
     <string-array name="structural_type">
-        <item>-- Structural Type --</item>
+        <item>-- Select --</item>
         <item>Asbestos</item>
         <item>Huts</item>
         <item>Madras Terrace</item>
@@ -44,6 +44,7 @@
     </string-array>
 
     <string-array name="block">
+        <item>-Select-</item>
         <item>A</item>
         <item>B</item>
         <item>C</item>
@@ -73,7 +74,7 @@
     </string-array>
 
     <string-array name="floor">
-        <item>--</item>
+        <item>-Select-</item>
         <item>00</item>
         <item>01</item>
         <item>02</item>
@@ -177,7 +178,7 @@
     </string-array>
 
     <string-array name="flat">
-        <item>--</item>
+        <item>-Select-</item>
         <item>01</item>
         <item>02</item>
         <item>03</item>

@@ -33,6 +33,9 @@
         <item name="android:windowBackground">@drawable/bg_splash</item>
     </style>
 
+    <style name="NoBackground" parent="AppTheme">
+    </style>
+
     <style name="InvisibleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:textSize">0sp</item>
         <item name="android:textColor">@android:color/transparent</item>

@@ -13,21 +13,21 @@
     <string name="tap_on_mic">Tap on mic to speak</string>
     <string name="details">DETAILS</string>
     <string name="hint_click_building">Click on building</string>
-    <string name="hint_block">Block</string>
-    <string name="hint_floor">Floor</string>
-    <string name="hint_flat">Flat#</string>
+    <string name="hint_block">Block<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_floor">Floor<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_flat">Flat#<font fgcolor='#FF0000'>*</font></string>
     <string name="hint_owner_name">Owner Name</string>
-    <string name="hint_owner_aadhar">Owner Aadhar</string>
-    <string name="hint_full_address">Full Address</string>
+    <string name="hint_owner_aadhar">Owner Aadhar Number</string>
+    <string name="hint_full_address">Full Address<font fgcolor='#FF0000'>*</font></string>
     <string name="hint_landmark">Landmark</string>
-    <string name="hint_town">Village/Town Name</string>
-    <string name="hint_mandal">Mandal Name</string>
-    <string name="hint_district">District Name</string>
-    <string name="hint_pincode">Pincode</string>
-    <string name="hint_dwelling_type">Dwelling Type</string>
+    <string name="hint_town">Village/Town Name<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_mandal">Mandal Name<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_district">District Name<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_pincode">Pincode<font fgcolor='#FF0000'>*</font></string>
+    <string name="hint_dwelling_type">Dwelling Type<font fgcolor='#FF0000'>*</font></string>
     <string name="hint_structural_type">Structural Type</string>
-    <string name="hint_assessment_number">Assesment Number</string>
-    <string name="hint_emenities">Emenities</string>
+    <string name="hint_assessment_number">Assessment Number</string>
+    <string name="hint_emenities">Amenities</string>
     <string name="hint_electricity">Electricity</string>
     <string name="hint_parking">Parking</string>
     <string name="hint_toilets">Toilets</string>
@@ -37,4 +37,23 @@
     <string name="hint_lgd_code">LGD Code</string>
     <string name="hint_dwellings_empty">Dwellings not assigned yet</string>
     <string name="error_msg">Floor|Flat|DwellingType cannot be empty</string>
+    <string name="simple_offline_end_progress_success">Region downloaded successfully</string>
+    <string name="region_name">Region %1$d</string>
+    <string name="basic_offline_deleted_toast">Offline Map Deleted</string>
+    <string name="hint_owner_name_text">Owner Name<font fgcolor='#FF0000'>*</font></string>
+    <string name="offline_text">YOU ARE ON OFFLINE</string>
+    <string name="verion_num">V.16.10</string>
+    <string name="action_showlist_dwelling">show dwelling</string>
+    <string name="info_full_address">full address</string>
+    <string name="info_village_name">village/town name</string>
+    <string name="info_mandal_name">mandal name</string>
+    <string name="info_district_name">district name</string>
+    <string name="info_pincode">pincode</string>
+    <string name="info_add_btn">ADD</string>
+    <string name="edt_hint_full_address">Full Address</string>
+    <string name="edt_hint_town">Village/Town name</string>
+    <string name="edt_hint_mandal">Mandal Name</string>
+    <string name="edt_hint_district">District Name</string>
+    <string name="edt_hint_pincode">Pincode</string>
+    <string name="info_txt">DWELLING INFORMATION</string>
 </resources>

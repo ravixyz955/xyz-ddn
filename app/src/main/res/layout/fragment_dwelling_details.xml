@@ -146,7 +146,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="6dp"
-                android:text="@string/hint_owner_name"
+                android:text="@string/hint_owner_name_text"
                 android:textSize="12sp" />
 
             <EditText
@@ -176,27 +176,7 @@
                 android:ems="10"
                 android:hint="@string/hint_owner_aadhar"
                 android:inputType="number"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
-                android:text="@string/hint_full_address"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/full_address"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_full_address"
-                android:inputType="textMultiLine"
-                android:lines="4"
+                android:maxLength="12"
                 android:padding="16dp"
                 android:textColorHint="#CCCCCC"
                 android:textSize="14sp" />
@@ -217,86 +197,6 @@
                 android:ems="10"
                 android:hint="@string/hint_landmark"
                 android:inputType="textPersonName"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
-                android:text="@string/hint_town"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/town_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_town"
-                android:inputType="textPersonName"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
-                android:text="@string/hint_mandal"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/mandal_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_mandal"
-                android:inputType="textPersonName"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
-                android:text="@string/hint_district"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/district_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_district"
-                android:inputType="textPersonName"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
-                android:text="@string/hint_pincode"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/pincode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_pincode"
-                android:inputType="number"
                 android:padding="16dp"
                 android:textColorHint="#CCCCCC"
                 android:textSize="14sp" />

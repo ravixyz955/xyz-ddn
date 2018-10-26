@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
+import com.mapbox.mapboxsdk.offline.OfflineRegion;
 
 public class Region implements Parcelable {
 
