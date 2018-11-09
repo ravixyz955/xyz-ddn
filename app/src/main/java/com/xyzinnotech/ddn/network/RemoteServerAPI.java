@@ -1,5 +1,6 @@
 package com.xyzinnotech.ddn.network;
 
+import com.google.gson.JsonArray;
 import com.mapbox.geojson.Feature;
 import com.squareup.okhttp.RequestBody;
 import com.xyzinnotech.ddn.network.model.ActivateUserRequest;
@@ -46,9 +47,16 @@ public interface RemoteServerAPI {
     @GET("https://s3.ap-south-1.amazonaws.com/xyz-config/ddn.json")
     Call<ArrayList<Region>> loadRegionsList();
 
-    @GET("/api/1/databases/xyz-ddn/collections/dwellings")
+    @GET("https://api.mlab.com/api/1/databases/xyz-ddn/collections/dwellings")
     Call<Object> getDwellingList(@Query("apiKey") String apiKey);
 
-    @POST("/api/1/databases/xyz-ddn/collections/dwellings")
-    Call<Void> getPutList(@Body com.google.gson.JsonArray requestBody, @Query("apiKey") String apiKey);
+    @POST(BASE_CONTEXT + "/dwellings")
+    Call<Void> getPutList(@Body com.google.gson.JsonArray requestBody);
+
+    @POST(BASE_CONTEXT + "/projects/5b878744d49b6489989d2946/update_ddn_address")
+    Call<Void> putAddressList(@Body JsonArray requestBody);
+
+    @GET(BASE_CONTEXT + "/dwellings/{CompositePrimaryKey}")
+    Call<Object> getDwelling(@Path("CompositePrimaryKey") String ddnCompositeKey);
+
 }

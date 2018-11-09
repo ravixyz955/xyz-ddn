@@ -4,10 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -22,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -32,6 +28,7 @@ import com.xyzinnotech.ddn.network.model.Region;
 import com.xyzinnotech.ddn.network.service.DDNAPIService;
 import com.xyzinnotech.ddn.utils.ItemOffsetDecoration;
 import com.xyzinnotech.ddn.utils.NetworkUtils;
+import com.xyzinnotech.ddn.utils.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -51,7 +48,6 @@ import retrofit.Retrofit;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.mapbox.mapboxsdk.Mapbox.getApplicationContext;
 
 public class RegionsListFragment extends Fragment {
 
@@ -60,13 +56,13 @@ public class RegionsListFragment extends Fragment {
     private RecyclerView mRegionsRecycler;
     private RegionsListAdapter regionsListAdapter;
     private static final String TAG = "RegionListFragment";
-    private SharedPreferences pref;
-    private SharedPreferences.Editor editor;
     private String base64;
     private Bitmap bitmap;
-    private static Toast t;
     private TextView offline_txt;
+    private TextView offline_region_txt;
     private BroadcastReceiver networkStateReceiver;
+    private ArrayList<Region> regions;
+    private Utils prefSharedUtils;
 
     public RegionsListFragment() {
         // Required empty public constructor
@@ -79,9 +75,7 @@ public class RegionsListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        pref = getApplicationContext().getSharedPreferences("MyPref", Context.MODE_PRIVATE);
-        t = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
-        t.getView().setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#009688")));
+        prefSharedUtils = Utils.init(getActivity(), "MyPref");
     }
 
     @Override
@@ -92,13 +86,19 @@ public class RegionsListFragment extends Fragment {
         mProgressBar = view.findViewById(R.id.progress_bar);
         mRegionsRecycler = view.findViewById(R.id.regions_list_recycler);
         offline_txt = view.findViewById(R.id.offline_text);
+        offline_region_txt = view.findViewById(R.id.offline_region_text);
         LinearLayoutManager llm = new LinearLayoutManager(getActivity());
         mRegionsRecycler.setLayoutManager(llm);
+        regionsListAdapter = new RegionsListAdapter(getActivity(), regions);
+        mRegionsRecycler.setAdapter(regionsListAdapter);
         ItemOffsetDecoration itemDecoration = new ItemOffsetDecoration(getActivity(), R.dimen.fab_margin_bottom);
         mRegionsRecycler.addItemDecoration(itemDecoration);
 
         mProgressBar.setVisibility(VISIBLE);
 
+        if (!NetworkUtils.isConnectingToInternet(getActivity())) {
+            offlineRegionList();
+        }
         networkStateReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -107,15 +107,14 @@ public class RegionsListFragment extends Fragment {
                 if (ni != null && ni.getState() == NetworkInfo.State.CONNECTED) {
 
                     offline_txt.setVisibility(View.GONE);
+                    offline_region_txt.setVisibility(GONE);
                     DDNAPIService ddnapiService = NetworkUtils.provideDDNAPIService(getActivity());
                     ddnapiService.getRegionsList().enqueue(new Callback<ArrayList<Region>>() {
                         @Override
                         public void onResponse(Response<ArrayList<Region>> response, Retrofit retrofit) {
                             mProgressBar.setVisibility(GONE);
                             if (response.isSuccess()) {
-                                Log.i("TKTR", response.body().toString());
-                                editor = pref.edit();
-                                editor.clear().commit();
+                                prefSharedUtils.clear();
                                 saveForOffline(response.body());
                                 regionsListAdapter = new RegionsListAdapter(getActivity(), response.body());
                                 mRegionsRecycler.setAdapter(regionsListAdapter);
@@ -135,25 +134,30 @@ public class RegionsListFragment extends Fragment {
                     });
 
                 } else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
-
-                    mProgressBar.setVisibility(GONE);
-                    String jsonArray = pref.getString("jsonArray", null);
-                    if (jsonArray == null) {
-                        t.setText("No Offline Regions found");
-                        t.show();
-                    } else {
-                        offline_txt.setVisibility(VISIBLE);
-                        Gson gson = new Gson();
-                        Type type = new TypeToken<List<Region>>() {
-                        }.getType();
-                        ArrayList<Region> regions = gson.fromJson(jsonArray, type);
-                        regionsListAdapter = new RegionsListAdapter(getActivity(), regions);
-                        mRegionsRecycler.setAdapter(regionsListAdapter);
-                    }
+                    offlineRegionList();
                 }
             }
         };
         return view;
+    }
+
+    private void offlineRegionList() {
+        mProgressBar.setVisibility(GONE);
+        String regions_str = prefSharedUtils.get("regionsArray");
+        if (regions_str == null) {
+            Utils.showToast(getActivity(), "No Offline Regions found");
+        } else {
+            offline_txt.setVisibility(VISIBLE);
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<Region>>() {
+            }.getType();
+            ArrayList<Region> regions = gson.fromJson(regions_str, type);
+            if (regions.size() > 0) {
+                offline_region_txt.setVisibility(GONE);
+            }
+            regionsListAdapter = new RegionsListAdapter(getActivity(), regions);
+            mRegionsRecycler.setAdapter(regionsListAdapter);
+        }
     }
 
     @Override
@@ -170,14 +174,13 @@ public class RegionsListFragment extends Fragment {
     }
 
     private void saveForOffline(ArrayList<Region> regions) {
-        JSONObject obj = null;
-        JSONArray jsonArray = new JSONArray();
-        editor = pref.edit();
+        JSONObject regionObj = null;
+        JSONArray offlineRegionsArray = new JSONArray();
         for (Region region : regions) {
-            obj = new JSONObject();
+            regionObj = new JSONObject();
             try {
-                obj.put("name", region.getName());
-                obj.put("tileset_id", region.getTilesetId());
+                regionObj.put("name", region.getName());
+                regionObj.put("tileset_id", region.getTilesetId());
                 String imgStr = new AsyncTask<String, Void, String>() {
 
                     @Override
@@ -216,14 +219,14 @@ public class RegionsListFragment extends Fragment {
                         }
                     }
                 }.execute(region.getImage()).get();
-                obj.put("image", imgStr);
+                regionObj.put("image", imgStr);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            jsonArray.put(obj);
+            offlineRegionsArray.put(regionObj);
         }
-        editor.putString("jsonArray", jsonArray.toString());
-        editor.commit();
+        prefSharedUtils.put("regionsArray", offlineRegionsArray.toString());
+        prefSharedUtils.finish();
     }
 
     public void applyFilter(String query) {

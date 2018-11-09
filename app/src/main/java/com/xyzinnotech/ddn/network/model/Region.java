@@ -29,6 +29,9 @@ public class Region implements Parcelable {
     @SerializedName("tileset_id")
     private String tilesetId;
 
+    @SerializedName("mapbox_id")
+    private String mapboxId;
+
     @SerializedName("center")
     private double[] center;
 
@@ -45,6 +48,7 @@ public class Region implements Parcelable {
         name = in.readString();
         projectId = in.readString();
         tilesetId = in.readString();
+        mapboxId = in.readString();
         center = in.createDoubleArray();
         image = in.readString();
         type = in.readString();
@@ -55,6 +59,7 @@ public class Region implements Parcelable {
         dest.writeString(name);
         dest.writeString(projectId);
         dest.writeString(tilesetId);
+        dest.writeString(mapboxId);
         dest.writeDoubleArray(center);
         dest.writeString(image);
         dest.writeString(type);
@@ -93,6 +98,14 @@ public class Region implements Parcelable {
         return center;
     }
 
+    public String getMapboxId() {
+        return mapboxId;
+    }
+
+    public void setMapboxId(String mapboxId) {
+        this.mapboxId = mapboxId;
+    }
+
     public void setCenter(double[] center) {
         this.center = center;
     }
@@ -112,5 +125,4 @@ public class Region implements Parcelable {
     public void setType(String type) {
         this.type = type;
     }
-
 }

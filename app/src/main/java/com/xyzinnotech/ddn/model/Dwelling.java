@@ -44,9 +44,6 @@ public class Dwelling extends RealmObject implements Parcelable {
 
     private String ownerAadhar;
 
-
-    private String landmark;
-
     private String dwellignType;
 
     private String assessmentNo;
@@ -68,7 +65,6 @@ public class Dwelling extends RealmObject implements Parcelable {
         flatNo = in.readString();
         ownerName = in.readString();
         ownerAadhar = in.readString();
-        landmark = in.readString();
         dwellignType = in.readString();
         assessmentNo = in.readString();
         structuralType = in.readString();
@@ -87,7 +83,6 @@ public class Dwelling extends RealmObject implements Parcelable {
         dest.writeString(flatNo);
         dest.writeString(ownerName);
         dest.writeString(ownerAadhar);
-        dest.writeString(landmark);
         dest.writeString(dwellignType);
         dest.writeString(assessmentNo);
         dest.writeString(structuralType);
@@ -161,14 +156,6 @@ public class Dwelling extends RealmObject implements Parcelable {
 
     public void setOwnerAadhar(String ownerAadhar) {
         this.ownerAadhar = ownerAadhar;
-    }
-
-    public String getLandmark() {
-        return landmark;
-    }
-
-    public void setLandmark(String landmark) {
-        this.landmark = landmark;
     }
 
     public int getOffset() {

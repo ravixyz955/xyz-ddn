@@ -22,4 +22,6 @@
         app:headerLayout="@layout/nav_header_regions_list"
         app:menu="@menu/activity_regions_list_drawer" />
 
+    <include layout="@layout/progress_bar" />
+
 </android.support.v4.widget.DrawerLayout>

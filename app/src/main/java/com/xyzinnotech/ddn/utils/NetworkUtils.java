@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -22,13 +23,21 @@ import com.xyzinnotech.ddn.network.RemoteServerAPI;
 import com.xyzinnotech.ddn.network.TokenAuthenticator;
 import com.xyzinnotech.ddn.network.service.DDNAPIService;
 import com.xyzinnotech.ddn.network.service.DDNAPIServiceImpl;
-import com.xyzinnotech.ddn.network.service.DataSyncAPIService;
-import com.xyzinnotech.ddn.network.service.DataSyncAPIServiceImpl;
 import com.xyzinnotech.ddn.network.service.UserAPIService;
 import com.xyzinnotech.ddn.network.service.UserAPIServiceImpl;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -38,13 +47,8 @@ import retrofit.Retrofit;
  */
 public class NetworkUtils {
 
-    private static final String SERVER_IP = "3rdi.xyz";
-    private static final String BASE_URL = "https://" + SERVER_IP + "";
-    private static final String BASE_CONTEXT = "/api";
-
-    private static final String DAYASYNC_SERVER_IP = "api.mlab.com";
-    private static final String DAYASYNC_BASE_CONTEXT = "/api/1/databases/xyz-ddn/";
-    private static final String DATASYNC_BASE_URL = "https://" + DAYASYNC_SERVER_IP + "";
+    private static final String SERVER_IP = "52.66.69.25:3000";
+    private static final String BASE_URL = "http://" + SERVER_IP + "";
 
     private static GsonBuilder gsonBuilder;
     private static OkHttpClient okHttpClient;
@@ -52,7 +56,6 @@ public class NetworkUtils {
     private static RemoteServerAPI remoteServerAPI;
     private static UserAPIService userAPIService;
     private static DDNAPIService ddnAPIService;
-    private static DataSyncAPIService dataSyncAPIService;
 
     public static boolean isConnectingToInternet(Context _context) {
         ConnectivityManager connectivity = (ConnectivityManager) _context
@@ -64,7 +67,6 @@ public class NetworkUtils {
                     if (anInfo.getState() == NetworkInfo.State.CONNECTED) {
                         return true;
                     }
-
         }
         return false;
     }
@@ -102,11 +104,59 @@ public class NetworkUtils {
                 okHttpClient.interceptors().add(provideOkHttpClientLogging());
             }
             okHttpClient.setAuthenticator(new TokenAuthenticator(mContext));
+
+            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+
+            okHttpClient.setSslSocketFactory(getSSLSocketFactory());
+            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
         }
         return okHttpClient;
     }
 
-    private static Retrofit provideRetrofit(Context mContext, String baseUrl, boolean enableLogging) {
+    private static SSLSocketFactory getSSLSocketFactory() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            return sslSocketFactory;
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            return null;
+        }
+    }
+
+    private static Retrofit provideRetrofit(Context mContext, String baseUrl,
+                                            boolean enableLogging) {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .addConverterFactory(GsonConverterFactory.create(provideGson()))
@@ -123,12 +173,6 @@ public class NetworkUtils {
         return remoteServerAPI;
     }
 
-    private static RemoteServerAPI provideDatasyncServerAPI(Context mContext) {
-        if (remoteServerAPI == null)
-            remoteServerAPI = provideRetrofit(mContext, DATASYNC_BASE_URL, true).create(RemoteServerAPI.class);
-        return remoteServerAPI;
-    }
-
     public static UserAPIService provideUserAPIService(Context mContext) {
         if (userAPIService == null)
             userAPIService = new UserAPIServiceImpl(provideServerAPI(mContext));
@@ -139,17 +183,6 @@ public class NetworkUtils {
         if (ddnAPIService == null)
             ddnAPIService = new DDNAPIServiceImpl(provideServerAPI(mContext));
         return ddnAPIService;
-    }
-
-    public static DataSyncAPIService provideDataSyncAPIService(Context mContext) {
-        if (dataSyncAPIService == null) {
-            dataSyncAPIService = new DataSyncAPIServiceImpl(provideDatasyncServerAPI(mContext));
-        }
-        return dataSyncAPIService;
-    }
-
-    public static String provideAvatarUrl(String mobile) {
-        return BASE_URL + BASE_CONTEXT + "/image/" + mobile;
     }
 
     public static boolean isOnline() {

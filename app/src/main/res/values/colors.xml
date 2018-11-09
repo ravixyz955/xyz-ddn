@@ -20,4 +20,6 @@
     <color name="gray_text_hint">#86888A</color>
 
     <color name="black_overlay">#66000000</color>
+
+    <color name="bottom_sheet">#ddd</color>
 </resources>

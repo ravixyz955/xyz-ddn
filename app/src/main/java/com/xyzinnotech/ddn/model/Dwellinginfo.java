@@ -23,13 +23,17 @@ public class Dwellinginfo extends RealmObject implements Parcelable {
     @PrimaryKey
     private String ddn;
 
-    private String address;
+    private String fullAddress;
 
-    private String town;
+    private String landmark;
 
-    private String mandal;
+    private String villageName;
 
-    private String district;
+    private String mandalName;
+
+    private String districtName;
+
+    private int offset;
 
     private String pincode;
 
@@ -39,11 +43,12 @@ public class Dwellinginfo extends RealmObject implements Parcelable {
 
     private Dwellinginfo(Parcel in) {
         ddn = in.readString();
-        address = in.readString();
-        town = in.readString();
-        mandal = in.readString();
-        district = in.readString();
+        fullAddress = in.readString();
+        villageName = in.readString();
+        mandalName = in.readString();
+        districtName = in.readString();
         pincode = in.readString();
+        landmark = in.readString();
     }
 
     @Override
@@ -54,10 +59,11 @@ public class Dwellinginfo extends RealmObject implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(ddn);
-        dest.writeString(address);
-        dest.writeString(town);
-        dest.writeString(mandal);
-        dest.writeString(district);
+        dest.writeString(fullAddress);
+        dest.writeString(landmark);
+        dest.writeString(villageName);
+        dest.writeString(mandalName);
+        dest.writeString(districtName);
         dest.writeString(pincode);
     }
 
@@ -69,43 +75,59 @@ public class Dwellinginfo extends RealmObject implements Parcelable {
         this.ddn = ddn;
     }
 
-    public String getAddress() {
-        return address;
+    public String getfullAddress() {
+        return fullAddress;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setfullAddress(String fullAddress) {
+        this.fullAddress = fullAddress;
     }
 
-    public String getTown() {
-        return town;
+    public String getLandmark() {
+        return landmark;
     }
 
-    public void setTown(String town) {
-        this.town = town;
+    public void setLandmark(String landmark) {
+        this.landmark = landmark;
     }
 
-    public String getMandal() {
-        return mandal;
+    public String getvillageName() {
+        return villageName;
     }
 
-    public void setMandal(String mandal) {
-        this.mandal = mandal;
+    public void setvillageName(String villageName) {
+        this.villageName = villageName;
     }
 
-    public String getDistrict() {
-        return district;
+    public String getmandalName() {
+        return mandalName;
     }
 
-    public void setDistrict(String district) {
-        this.district = district;
+    public void setmandalName(String mandalName) {
+        this.mandalName = mandalName;
     }
 
-    public String getPincode() {
+    public String getdistrictName() {
+        return districtName;
+    }
+
+    public void setdistrictName(String districtName) {
+        this.districtName = districtName;
+    }
+
+    public String getpincode() {
         return pincode;
     }
 
-    public void setPincode(String pincode) {
+    public void setpincode(String pincode) {
         this.pincode = pincode;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 }

@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <uses-feature
         android:name="android.hardware.location.gps"
@@ -24,6 +25,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/SplashStyle">
+
+        <meta-data
+            android:name="com.mapbox.SetStorageExternal"
+            android:value="true" />
+
         <activity
             android:name=".RegionsListActivity"
             android:label="Regions List"
@@ -50,6 +56,7 @@
             android:name=".AddDdnInfoActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NoBackground" />
+        <activity android:name=".CreateParcelActivity" />
     </application>
 
 </manifest>

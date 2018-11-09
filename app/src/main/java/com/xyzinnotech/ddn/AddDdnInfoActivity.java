@@ -1,18 +1,16 @@
 package com.xyzinnotech.ddn;
 
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.xyzinnotech.ddn.model.Dwelling;
 import com.xyzinnotech.ddn.model.Dwellinginfo;
+import com.xyzinnotech.ddn.utils.Utils;
 
 import io.realm.Realm;
 
@@ -22,10 +20,10 @@ public class AddDdnInfoActivity extends AppCompatActivity {
     private EditText town_name;
     private EditText mandal_name;
     private EditText district_name;
+    private EditText landmark;
     private EditText pincode;
-    private Button save_info_btn;
+    private FloatingActionButton save_info_fab;
     private Dwellinginfo mDwellingInf;
-    private Toast t;
     private String ddn;
     private static final String ARG_DDN = "ddn";
     private Realm mRealm;
@@ -40,11 +38,9 @@ public class AddDdnInfoActivity extends AppCompatActivity {
         town_name = (EditText) findViewById(R.id.town_name);
         mandal_name = (EditText) findViewById(R.id.mandal_name);
         district_name = (EditText) findViewById(R.id.district_name);
+        landmark = (EditText) findViewById(R.id.landmark);
         pincode = (EditText) findViewById(R.id.pincode);
-        save_info_btn = (Button) findViewById(R.id.save_info_btn);
-
-        t = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-        t.getView().setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#009688")));
+        save_info_fab = (FloatingActionButton) findViewById(R.id.save_address_fab);
 
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -58,14 +54,15 @@ public class AddDdnInfoActivity extends AppCompatActivity {
             mDwellingInf = new Dwellinginfo();
             mDwellingInf.setDdn(ddn);
         } else {
-            full_address.setText(mDwellingInf.getAddress());
-            town_name.setText(mDwellingInf.getTown());
-            mandal_name.setText(mDwellingInf.getMandal());
-            district_name.setText(mDwellingInf.getDistrict());
-            pincode.setText(mDwellingInf.getPincode());
+            full_address.setText(mDwellingInf.getfullAddress());
+            landmark.setText(mDwellingInf.getLandmark());
+            town_name.setText(mDwellingInf.getvillageName());
+            mandal_name.setText(mDwellingInf.getmandalName());
+            district_name.setText(mDwellingInf.getdistrictName());
+            pincode.setText(mDwellingInf.getpincode());
         }
 
-        save_info_btn.setOnClickListener(new View.OnClickListener() {
+        save_info_fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (TextUtils.isEmpty(full_address.getText())) {
@@ -85,17 +82,22 @@ public class AddDdnInfoActivity extends AppCompatActivity {
                 } else {
 
                     mRealm.beginTransaction();
-                    mDwellingInf.setAddress(full_address.getText().toString());
-                    mDwellingInf.setTown(town_name.getText().toString());
-                    mDwellingInf.setMandal(mandal_name.getText().toString());
-                    mDwellingInf.setDistrict(district_name.getText().toString());
-                    mDwellingInf.setPincode(pincode.getText().toString());
+                    mDwellingInf.setfullAddress(full_address.getText().toString());
+                    if (TextUtils.isEmpty(landmark.getText())) {
+                        mDwellingInf.setLandmark("landmark" + " : -");
+                    } else {
+                        mDwellingInf.setLandmark(landmark.getText().toString());
+                    }
+                    mDwellingInf.setvillageName(town_name.getText().toString());
+                    mDwellingInf.setmandalName(mandal_name.getText().toString());
+                    mDwellingInf.setOffset(1);
+                    mDwellingInf.setdistrictName(district_name.getText().toString());
+                    mDwellingInf.setpincode(pincode.getText().toString());
 
                     mRealm.insertOrUpdate(mDwellingInf);
                     mRealm.commitTransaction();
 
-                    t.setText("Saved successfully!");
-                    t.show();
+                    Utils.showToast(AddDdnInfoActivity.this, "Saved successfully!");
                     finish();
                 }
             }

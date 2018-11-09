@@ -19,6 +19,7 @@ import com.xyzinnotech.ddn.DDNMapActivity;
 import com.xyzinnotech.ddn.R;
 import com.xyzinnotech.ddn.network.model.Region;
 import com.xyzinnotech.ddn.utils.NetworkUtils;
+import com.xyzinnotech.ddn.utils.Utils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -58,10 +59,13 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
         holder.name.setText(mRegion.getName());
         if (!NetworkUtils.isConnectingToInternet(mContext)) {
 //            Log.d("ENCODED", "onBindViewHolder: " + mRegion.getImage());
-            byte[] b = Base64.decode(mRegion.getImage(), Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
-            holder.image.setImageBitmap(bitmap);
-            holder.date.setText(dateFormat.format(date));
+            if (mRegion.getImage() != null) {
+
+                byte[] b = Base64.decode(mRegion.getImage(), Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
+                holder.image.setImageBitmap(bitmap);
+                holder.date.setText(dateFormat.format(date));
+            }
         } else {
             Picasso.get().load(mRegion.getImage()).into(holder.image);
             holder.date.setText(dateFormat.format(date));
@@ -73,12 +77,13 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
 
                     Intent intent = new Intent(mContext, DDNMapActivity.class);
                     intent.putExtra(Region.class.getName(), mRegion);
+                    intent.putExtra("selectedRegionIndex", position);
                     mContext.startActivity(intent);
                 } else {
-                    Intent intent = new Intent(mContext, DDNMapActivity.class);
-                    intent.putExtra("index", position);
-                    mContext.startActivity(intent);
-//                    mContext.startActivity(new Intent(mContext, DDNMapActivity.class));
+                    Utils.showToast(mContext, "Nothing to view");
+                    /*Intent intent = new Intent(mContext, DDNMapActivity.class);
+                    intent.putExtra("selectedRegionIndex", position);
+                    mContext.startActivity(intent);*/
                 }
             }
         });
@@ -86,7 +91,14 @@ public class RegionsListAdapter extends RecyclerView.Adapter<RegionsListAdapter.
 
     @Override
     public int getItemCount() {
-        return this.mFilteredRegions.size();
+        int regionsCount;
+
+        if (mFilteredRegions != null && !mFilteredRegions.isEmpty()) {
+            regionsCount = mFilteredRegions.size();
+        } else {
+            regionsCount = 0;
+        }
+        return regionsCount;
     }
 
     @Override

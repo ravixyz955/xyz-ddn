@@ -186,26 +186,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="6dp"
                 android:layout_marginTop="6dp"
-                android:text="@string/hint_landmark"
-                android:textSize="12sp" />
-
-            <EditText
-                android:id="@+id/landmark"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background_normal"
-                android:ems="10"
-                android:hint="@string/hint_landmark"
-                android:inputType="textPersonName"
-                android:padding="16dp"
-                android:textColorHint="#CCCCCC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_marginTop="6dp"
                 android:text="@string/hint_dwelling_type"
                 android:textSize="12sp" />
 

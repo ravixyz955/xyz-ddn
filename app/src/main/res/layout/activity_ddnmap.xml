@@ -10,9 +10,6 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_cameraZoom="18"
-        mapbox:mapbox_cameraTargetLat="16.95569061263034"
-        mapbox:mapbox_cameraTargetLng="81.45561669191216"
         mapbox:mapbox_cameraTilt="10"/>
 
     <ProgressBar

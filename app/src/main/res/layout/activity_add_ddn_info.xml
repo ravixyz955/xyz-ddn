@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -30,6 +31,27 @@
             android:padding="16dp"
             android:textColorHint="#CCCCCC"
             android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_landmark"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/landmark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background_normal"
+            android:ems="10"
+            android:hint="@string/edt_hint_landmark"
+            android:inputType="textPersonName"
+            android:padding="16dp"
+            android:textColorHint="#CCCCCC"
+            android:textSize="14sp" />
+
 
         <TextView
             android:layout_width="wrap_content"
@@ -112,16 +134,13 @@
             android:textColorHint="#CCCCCC"
             android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/save_info_btn"
-            android:layout_width="match_parent"
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/save_address_fab"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/add_btn_shape"
-            android:padding="16dp"
-            android:text="SAVE"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            app:srcCompat="@drawable/ic_check_white_24dp" />
+
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

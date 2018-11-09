@@ -1,8 +1,6 @@
 package com.xyzinnotech.ddn.fragment;
 
 import android.app.Activity;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,13 +19,13 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.xyzinnotech.ddn.R;
 import com.xyzinnotech.ddn.SingleFragmentActivity;
 import com.xyzinnotech.ddn.model.Dwelling;
-import com.xyzinnotech.ddn.network.service.DataSyncAPIService;
+import com.xyzinnotech.ddn.network.service.DDNAPIService;
 import com.xyzinnotech.ddn.utils.NetworkUtils;
+import com.xyzinnotech.ddn.utils.Utils;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -44,7 +42,6 @@ public class DwellingDetailsFragment extends Fragment {
     private Spinner flat;
     private EditText ownerName;
     private EditText ownerAadhar;
-    private EditText landmark;
     private CheckBox electricity;
     private CheckBox parking;
     private CheckBox toilets;
@@ -59,8 +56,7 @@ public class DwellingDetailsFragment extends Fragment {
     static Bundle extras;
     private static Dwelling refDwelling;
     private static Realm refRealm;
-    private DataSyncAPIService dataSyncAPIService;
-    private static Toast t;
+    private DDNAPIService ddnapiService;
     private static Activity activity;
 
     public DwellingDetailsFragment() {
@@ -75,11 +71,8 @@ public class DwellingDetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         extras = getActivity().getIntent().getExtras();
-        dataSyncAPIService = NetworkUtils.provideDataSyncAPIService(getContext());
+        ddnapiService = NetworkUtils.provideDDNAPIService(getContext());
         activity = getActivity();
-
-        t = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
-        t.getView().setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#009688")));
 
         if (getActivity().getIntent().hasExtra(Dwelling.class.getName())) {
             mDwelling = getActivity().getIntent().getParcelableExtra(Dwelling.class.getName());
@@ -113,7 +106,6 @@ public class DwellingDetailsFragment extends Fragment {
         flat = inflate.findViewById(R.id.flat);
         ownerName = inflate.findViewById(R.id.owner_name);
         ownerAadhar = inflate.findViewById(R.id.owner_aadhar);
-        landmark = inflate.findViewById(R.id.landmark);
         dwellingType = inflate.findViewById(R.id.dwelling_type);
         structuralType = inflate.findViewById(R.id.structural_type);
         assessmentNo = inflate.findViewById(R.id.assessment_number);
@@ -148,8 +140,7 @@ public class DwellingDetailsFragment extends Fragment {
                     if (getActivity().getIntent().hasExtra("insert")) {
                         Dwelling dwelling = mRealm.where(Dwelling.class).equalTo("CompositePrimaryKey", block.getSelectedItem().toString() + floor.getSelectedItem().toString() + flat.getSelectedItem().toString() + ddn).findFirst();
                         if (dwelling != null) {
-                            t.setText("Dwelling already exists!");
-                            t.show();
+                            Utils.showToast(getActivity(), "Dwelling already exists.");
                         } else {
                             saveDwelling(false);
                         }
@@ -211,7 +202,6 @@ public class DwellingDetailsFragment extends Fragment {
             flat.setSelection(getIndexOfItem(mDwelling.getFlatNo(), getResources().getStringArray(R.array.flat)));
             ownerName.setText(mDwelling.getOwnerName());
             ownerAadhar.setText(mDwelling.getOwnerAadhar());
-            landmark.setText(mDwelling.getLandmark());
             dwellingType.setSelection(getIndexOfItem(mDwelling.getDwellignType(), getResources().getStringArray(R.array.dwelling_type)));
             structuralType.setSelection(getIndexOfItem(mDwelling.getStructuralType(), getResources().getStringArray(R.array.structural_type)));
             assessmentNo.setText(mDwelling.getAssessmentNo());
@@ -249,7 +239,6 @@ public class DwellingDetailsFragment extends Fragment {
         mDwelling.setFlatNo(flat.getSelectedItem().toString());
         mDwelling.setOwnerName(ownerName.getText().toString());
         mDwelling.setOwnerAadhar(ownerAadhar.getText().toString());
-        mDwelling.setLandmark(landmark.getText().toString());
         mDwelling.setDwellignType(dwellingType.getSelectedItem().toString());
         mDwelling.setStructuralType(structuralType.getSelectedItem().toString());
         mDwelling.setAssessmentNo(assessmentNo.getText().toString());
@@ -261,8 +250,7 @@ public class DwellingDetailsFragment extends Fragment {
         mRealm.insertOrUpdate(mDwelling);
         mRealm.commitTransaction();
 
-        t.setText("Saved Successfully!");
-        t.show();
+        Utils.showToast(getActivity(), "Saved Successfully.");
         getActivity().finish();
     }
 
@@ -281,8 +269,7 @@ public class DwellingDetailsFragment extends Fragment {
         if (mDwelling != null) {
             Dwelling dwellingsList = refRealm.where(Dwelling.class).equalTo("CompositePrimaryKey", mDwelling.getCompositePrimaryKey()).findFirst();
             if (dwellingsList != null) {
-                t.setText("Deleted Successfully!");
-                t.show();
+                Utils.showToast(getActivity(), "Deleted Successfully.");
                 refRealm.beginTransaction();
                 dwellingsList.deleteFromRealm();
                 refRealm.commitTransaction();

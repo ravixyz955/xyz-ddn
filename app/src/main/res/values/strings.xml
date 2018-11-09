@@ -42,12 +42,12 @@
     <string name="basic_offline_deleted_toast">Offline Map Deleted</string>
     <string name="hint_owner_name_text">Owner Name<font fgcolor='#FF0000'>*</font></string>
     <string name="offline_text">YOU ARE ON OFFLINE</string>
-    <string name="verion_num">V.16.10</string>
+    <string name="verion_num">V.09.11</string>
     <string name="action_showlist_dwelling">show dwelling</string>
     <string name="info_full_address">full address</string>
     <string name="info_village_name">village/town name</string>
     <string name="info_mandal_name">mandal name</string>
-    <string name="info_district_name">district name</string>
+    <string name="info_district_name">district</string>
     <string name="info_pincode">pincode</string>
     <string name="info_add_btn">ADD</string>
     <string name="edt_hint_full_address">Full Address</string>
@@ -56,4 +56,10 @@
     <string name="edt_hint_district">District Name</string>
     <string name="edt_hint_pincode">Pincode</string>
     <string name="info_txt">DWELLING INFORMATION</string>
+    <string name="edt_hint_landmark">Landmark</string>
+    <string name="info_landmark">landmark</string>
+    <string name="add_address"><a href="">add address</a></string>
+    <string name="edit_address"><a href="">EDIT</a></string>
+    <string name="address_sync">sync address</string>
+    <string name="action_add_parcel">add parcel</string>
 </resources>

@@ -22,13 +22,6 @@
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
 
-    <Button
-        android:id="@+id/click"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="C" />
-
     <FrameLayout
         android:id="@+id/content_dwellings_list"
         android:layout_width="match_parent"
@@ -38,36 +31,16 @@
 
     </FrameLayout>
 
-    <!-- <LinearLayout
-         android:id="@+id/add_ddn_bottom_sheet"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:background="@android:color/white"
-         android:fitsSystemWindows="true"
-         android:orientation="vertical"
-         app:behavior_hideable="true"
-         app:behavior_peekHeight="0dp"
-         app:layout_behavior="@string/bottom_sheet_behavior">
-
-         <Button
-             android:id="@+id/add_details"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_margin="2dp"
-             android:background="@color/colorPrimary"
-             android:text="ADD ADDRESS"
-             android:textColor="@color/white" />
-     </LinearLayout>-->
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_height="56dp"
+        android:layout_gravity="center_vertical"
         android:layout_margin="@dimen/fab_margin"
+        app:layout_anchor="@id/ddn_bottom_sheet"
+        app:layout_anchorGravity="right"
         app:srcCompat="@drawable/ic_add_white_24dp" />
 
     <include layout="@layout/address_bottom_sheet" />
-
 
 </android.support.design.widget.CoordinatorLayout>

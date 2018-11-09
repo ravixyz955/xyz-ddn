@@ -1,15 +1,16 @@
 package com.xyzinnotech.ddn;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -18,7 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -45,13 +45,17 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Projection;
 import com.mapbox.mapboxsdk.offline.OfflineManager;
 import com.mapbox.mapboxsdk.offline.OfflineRegion;
-import com.mapbox.mapboxsdk.offline.OfflineRegionError;
-import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
-import com.mapbox.mapboxsdk.style.layers.CircleLayer;
+import com.mapbox.mapboxsdk.plugins.offline.model.NotificationOptions;
+import com.mapbox.mapboxsdk.plugins.offline.model.OfflineDownloadOptions;
+import com.mapbox.mapboxsdk.plugins.offline.offline.OfflineDownloadChangeListener;
+import com.mapbox.mapboxsdk.plugins.offline.offline.OfflineDownloadService;
+import com.mapbox.mapboxsdk.plugins.offline.offline.OfflineDownloadStateReceiver;
+import com.mapbox.mapboxsdk.plugins.offline.offline.OfflinePlugin;
+import com.mapbox.mapboxsdk.plugins.offline.utils.OfflineUtils;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
@@ -64,6 +68,7 @@ import com.xyzinnotech.ddn.network.model.Region;
 import com.xyzinnotech.ddn.network.service.DDNAPIService;
 import com.xyzinnotech.ddn.utils.DataUtils;
 import com.xyzinnotech.ddn.utils.NetworkUtils;
+import com.xyzinnotech.ddn.utils.Utils;
 
 import org.json.JSONObject;
 
@@ -78,47 +83,27 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.exponential;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.interpolate;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleColor;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleOpacity;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textField;
 
-
-public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallback, LocationEngineListener, PermissionsListener {
+public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallback, LocationEngineListener, PermissionsListener, OfflineDownloadChangeListener {
     private static final String SELECTED_GEOJSON_SOURCE = "selected_geojson_source";
     private static final String SELECTED_BUILDINGS_HIGHLIGHT_LAYER = "selected_buildings_highlight_layer";
     private static final String CIRCLELAYER_GEOJSON_SOURCE = "circlelayer_geojson_source";
     private static final String DWELLINGS_HIGHLIGHT_LAYER = "dwellings_highlight_layer";
     private MapView mapView;
-    private MapboxMap mapboxMap;
-    private Marker marker;
     private PermissionsManager permissionsManager;
     private LocationEngine locationEngine;
     private LocationLayerPlugin locationLayerPlugin;
-    private Location originLocation;
     static double latitude;
     static double longitude;
     com.mapbox.mapboxsdk.annotations.Marker mCurrLocationMarker;
-    String tile_id = null;
-    private boolean isEndNotified;
+    private String mapbox_id = null;
     private ProgressBar progressBar;
-    String id;
-    private OfflineRegion offlineRegion;
-    private static final String TAG = "MSPSP";
+    private String id;
     public static final String JSON_CHARSET = "UTF-8";
     public static final String JSON_FIELD_REGION_NAME = "FIELD_REGION_NAME";
-    OfflineRegion[] of;
     OfflineTilePyramidRegionDefinition definition;
-    private OfflineManager offlineManager;
     public static final String BUILDINGS_LINE_LAYER = "buildings-line-layer";
     public static final String BUILDINGS_FILL_LAYER = "buildings-fill-layer";
     public static final String BUILDINGS_HIGHLIGHT_LAYER = "buildings-highlight-layer";
@@ -131,37 +116,47 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
     private Projection projection;
     private String selectedDdn;
     private Feature selectedFeature;
-    private static Toast t;
-    private SharedPreferences pref, tilePref;
-    private SharedPreferences.Editor editor;
-    ArrayList<Region> regions;
-    private int index, position;
+    private ArrayList<Region> regions;
+    private int selectedRegionIndex, selectedRegionOfflinePosition;
     private static OfflineRegion[] offlineRegionsList;
     private String regionName;
     private CameraPosition cameraPosition;
     private int roadDdn;
     private Realm mRealm;
     private boolean isChecked = false;
+    private OfflinePlugin offlinePlugin;
+    private IntentFilter mIntentfilter;
+    OfflineDownloadStateReceiver offlineDownloadStateReceiver;
+    private static FillLayer highlightLayer;
+    private double selectedRegionZoom;
+    private Intent OfflineDownloadServiceIntent;
+    private NotificationManagerCompat notificationManager;
+    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+    private Utils prefSharedUtils, tilePrefSharedUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ddnmap);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        offlinePlugin = OfflinePlugin.getInstance(this);
         mRealm = Realm.getDefaultInstance();
+        offlineDownloadStateReceiver = new OfflineDownloadStateReceiver();
+        OfflineDownloadServiceIntent = new Intent(this, OfflineDownloadService.class);
+        notificationManager = NotificationManagerCompat.from(this);
 
-        pref = getApplicationContext().getSharedPreferences("OfflineFeatureList", Context.MODE_PRIVATE);
-        tilePref = getApplicationContext().getSharedPreferences("MyPref", Context.MODE_PRIVATE);
-
+        prefSharedUtils = Utils.init(this, "OfflineFeatureList");
+        tilePrefSharedUtils = Utils.init(this, "MyPref");
+        mIntentfilter = new IntentFilter("com.mapbox.mapboxsdk.plugins.offline");
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
-        if (getIntent().hasExtra("index")) {
-            index = getIntent().getIntExtra("index", 0);
-
+        if (getIntent().hasExtra("selectedRegionIndex")) {
+            selectedRegionIndex = getIntent().getIntExtra("selectedRegionIndex", 0);
         }
 
         if (getIntent().hasExtra(Region.class.getName())) {
@@ -171,23 +166,18 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                 regionName = mRegion.getName();
             }
         } else {
-            String jsonArray = tilePref.getString("jsonArray", null);
-
+            String jsonArray = tilePrefSharedUtils.get("regionsArray");
             if (jsonArray != null) {
                 Gson gson = new Gson();
                 Type type = new TypeToken<List<Region>>() {
                 }.getType();
                 regions = gson.fromJson(jsonArray, type);
-                setTitle(regions.get(index).getName());
-                regionName = regions.get(index).getName();
+                setTitle(regions.get(selectedRegionIndex).getName());
+                regionName = regions.get(selectedRegionIndex).getName();
             }
         }
 
         ddnapiService = NetworkUtils.provideDDNAPIService(this);
-
-        t = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-        t.getView().setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#009688")));
-
         mapView = (MapView) findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -196,18 +186,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
         progressBar = findViewById(R.id.offline_download_progress_bar);
 
         if (NetworkUtils.isConnectingToInternet(DDNMapActivity.this)) {
-            OfflineManager offlineManager = OfflineManager.getInstance(DDNMapActivity.this);
-            offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
-                @Override
-                public void onList(OfflineRegion[] offlineRegions) {
-                    offlineRegionsList = offlineRegions;
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.e(TAG, "Error: " + error);
-                }
-            });
+            getOfflineRegionList();
         } else {
             progressBar.setVisibility(View.GONE);
             OfflineManager offlineManager = OfflineManager.getInstance(DDNMapActivity.this);
@@ -215,53 +194,73 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                 @Override
                 public void onList(final OfflineRegion[] offlineRegions) {
                     if (offlineRegions == null || offlineRegions.length == 0) {
-                        t.setText("No Regions Yet");
-                        t.show();
+                        Utils.showToast(DDNMapActivity.this, "No Regions Yet");
                         return;
                     } else {
                         offlineRegionsList = offlineRegions;
-                        position = getMapPosition();
-                        if (position >= 0) {
-                            Log.d(TAG, "onList: " + position);
-                            definition = (OfflineTilePyramidRegionDefinition) offlineRegions[position].getDefinition();
+                        selectedRegionOfflinePosition = getMapPosition();
+                        if (selectedRegionOfflinePosition >= 0) {
+                            definition = (OfflineTilePyramidRegionDefinition) offlineRegions[selectedRegionOfflinePosition].getDefinition();
                             if (definition != null) {
-                                // Get the region bounds and zoom
                                 LatLngBounds bounds = (definition.getBounds());
                                 double regionZoom = (definition.getMaxZoom());
 
-                                // Create new camera position
                                 cameraPosition = new CameraPosition.Builder()
                                         .target(bounds.getCenter())
                                         .zoom(18)
                                         .build();
                             }
                         } else {
-                            t.setText("No Offline Map found");
-                            t.show();
+                            Utils.showToast(DDNMapActivity.this, "No Offline Map found");
                         }
                     }
                 }
 
                 @Override
                 public void onError(String error) {
-                    Log.e(TAG, "Error: " + error);
+                    Log.e("onListError", "Error: " + error);
                 }
             });
         }
     }
 
+    private final OfflineRegion.OfflineRegionDeleteCallback offlineRegionDeleteCallback =
+            new OfflineRegion.OfflineRegionDeleteCallback() {
+                @Override
+                public void onDelete() {
+                    Utils.showToast(DDNMapActivity.this, getRegionName(offlineRegionsList[0]) + " " + " Offline map removed.");
+                }
+
+                @Override
+                public void onError(String error) {
+                    Utils.showToast(DDNMapActivity.this, "Error getting offline region state: " + error);
+                }
+            };
+
+    private void getOfflineRegionList() {
+        OfflineManager offlineManager = OfflineManager.getInstance(DDNMapActivity.this);
+        offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
+            @Override
+            public void onList(OfflineRegion[] offlineRegions) {
+                offlineRegionsList = offlineRegions;
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("onListError", "Error: " + error);
+            }
+        });
+    }
+
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        offlineManager = OfflineManager.getInstance(DDNMapActivity.this);
         this.map = mapboxMap;
         projection = mapboxMap.getProjection();
         map.clear();
-        // navigateToRegion();
         if (mRegion != null) {
-            tile_id = mRegion.getTilesetId();
+            mapbox_id = mRegion.getMapboxId();
         } else {
-            tile_id = regions.get(index).getTilesetId();
-            Log.d("TILEID", "onMapReady: " + tile_id);
+            mapbox_id = regions.get(selectedRegionIndex).getTilesetId();
         }
 
         if (NetworkUtils.isConnectingToInternet(this)) {
@@ -271,16 +270,12 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             ddnapiService.getFeaturesList(mRegion.getProjectId()).enqueue(new Callback<ArrayList<Feature>>() {
                 @Override
                 public void onResponse(Response<ArrayList<Feature>> response, Retrofit retrofit) {
-                    editor = pref.edit();
-//                    editor.clear().commit();
                     featureList = response.body();
                     FeatureCollection featureCollection = FeatureCollection.fromFeatures(featureList);
-                    if (!pref.contains(mRegion.getName())) {
-//                        editor.clear();
-                        editor.putString(mRegion.getName(), featureCollection.toJson());
+                    if (!prefSharedUtils.contains(mRegion.getName())) {
+                        prefSharedUtils.put(mRegion.getName(), featureCollection.toJson());
                     }
-                    editor.commit();
-
+                    prefSharedUtils.finish();
                     GeoJsonSource geoJsonSource = new GeoJsonSource(GEOJSON_SOURCE, featureCollection);
                     map.addSource(geoJsonSource);
                 }
@@ -292,44 +287,27 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             });
         } else {
 
-            if (pref.contains(regionName)) {
-
+            if (prefSharedUtils.contains(regionName)) {
                 map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                 addOfflineTileSet();
 //                navigateToOfflineRegion();
-                String featureListStr = pref.getString(regionName, null);
+                String featureListStr = prefSharedUtils.get(regionName);
 
                 if (featureListStr != null) {
                     try {
-
                         FeatureCollection featureCollection = FeatureCollection.fromJson(featureListStr);
                         GeoJsonSource geoJsonSource = new GeoJsonSource(GEOJSON_SOURCE, featureCollection);
                         map.addSource(geoJsonSource);
                     } catch (Exception e) {
-                        Log.d(TAG, "onMapReady: " + e.getMessage());
+                        Log.d("onListError", "onMapReady: " + e.getMessage());
                     }
                 }
             }
         }
 
-        LineLayer lineLayer = new LineLayer(BUILDINGS_LINE_LAYER, GEOJSON_SOURCE);
-        lineLayer.setProperties(
-                PropertyFactory.lineWidth(1f),
-                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
-        );
-
-        FillLayer fillLayer = new FillLayer(BUILDINGS_FILL_LAYER, GEOJSON_SOURCE);
-        fillLayer.setProperties(PropertyFactory.fillOpacity(0.0f));
-        map.addLayer(fillLayer);
-
-        FillLayer highlightLayer = new FillLayer(BUILDINGS_HIGHLIGHT_LAYER, GEOJSON_SOURCE);
-        highlightLayer.setProperties(
-                PropertyFactory.fillColor(Color.parseColor("#800000")),
-                PropertyFactory.fillOpacity(0.9f)
-        );
-
-        highlightLayer.setFilter(eq(get("ddn"), literal("")));
-        map.addLayer(highlightLayer);
+        addLineLayer();
+        addFillLayer();
+        addHighlightLayer();
 
         map.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
             @Override
@@ -381,6 +359,31 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
         });
     }
 
+    private void addHighlightLayer() {
+        highlightLayer = new FillLayer(BUILDINGS_HIGHLIGHT_LAYER, GEOJSON_SOURCE);
+        highlightLayer.setProperties(
+                PropertyFactory.fillColor(Color.parseColor("#800000")),
+                PropertyFactory.fillOpacity(0.9f)
+        );
+
+        highlightLayer.setFilter(eq(get("ddn"), literal("")));
+        map.addLayer(highlightLayer);
+    }
+
+    private void addFillLayer() {
+        FillLayer fillLayer = new FillLayer(BUILDINGS_FILL_LAYER, GEOJSON_SOURCE);
+        fillLayer.setProperties(PropertyFactory.fillOpacity(0.0f));
+        map.addLayer(fillLayer);
+    }
+
+    private void addLineLayer() {
+        LineLayer lineLayer = new LineLayer(BUILDINGS_LINE_LAYER, GEOJSON_SOURCE);
+        lineLayer.setProperties(
+                PropertyFactory.lineWidth(1f),
+                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
+        );
+    }
+
     private void showListOfBuildings(String selectedDdn) {
         ArrayList<Feature> features = featureList;
         ArrayList<Feature> selectedFeatures = new ArrayList<>();
@@ -389,7 +392,6 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
             for (Feature feature : features) {
                 if (feature != null) {
-                    Log.d("ASDFGH", feature.toJson());
                     if (feature.hasProperty("ddn")) {
 
                         if (feature.getStringProperty("ddn").length() > 3 && !feature.getStringProperty("ddn").contains("-")) {
@@ -421,22 +423,25 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                 PropertyFactory.fillColor(Color.parseColor("#FF7700")),
                 PropertyFactory.fillOpacity(0.9f)
         );
-
         map.addLayer(highlightLayer);
     }
 
-
     private void addTileset() {
-        TileSet tileSet = new TileSet("2.2.0", "https://api.mapbox.com/v4/" + tile_id + "/{z}/{x}/{y}@2x.png?access_token=" + getString(R.string.mapbox_access_token));
-        RasterSource rasterSource1 = new RasterSource("tileSet", tileSet, 256);
+        int tileSize;
+        TileSet tileSet = new TileSet("2.2.0", "https://api.mapbox.com/v4/" + mapbox_id + "/{z}/{x}/{y}@2x.png?access_token=" + getString(R.string.mapbox_access_token));
+        if (selectedRegionIndex == 0) {
+            tileSize = 100;
+        } else {
+            tileSize = 100;
+        }
+        RasterSource rasterSource1 = new RasterSource("tileSet", tileSet, tileSize);
         map.addSource(rasterSource1);
         RasterLayer rasterLayer1 = new RasterLayer("dd", "tileSet");
         map.addLayer(rasterLayer1);
-
     }
 
     private void addOfflineTileSet() {
-        TileSet tileSet = new TileSet("2.2.0", "https://api.mapbox.com/v4/" + tile_id + "/{z}/{x}/{y}@2x.png?access_token=" + getString(R.string.mapbox_access_token));
+        TileSet tileSet = new TileSet("2.2.0", "https://api.mapbox.com/v4/" + mapbox_id + "/{z}/{x}/{y}@2x.png?access_token=" + getString(R.string.mapbox_access_token));
         RasterSource rasterSource1 = new RasterSource("tileSet", tileSet, 256);
         map.addSource(rasterSource1);
         RasterLayer rasterLayer1 = new RasterLayer("dd", "tileSet");
@@ -453,7 +458,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
     }
 
     private void navigateToOfflineRegion() {
-        Region region = regions.get(position);
+        Region region = regions.get(selectedRegionOfflinePosition);
         if (map != null && region != null) {
             Location location = new Location("");
             location.setLatitude(region.getCenter()[1]);
@@ -470,7 +475,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
         IconFactory iconFactory = IconFactory.getInstance(this);
         Icon icon = iconFactory.fromResource(R.drawable.map_marker_dark);
 
-        marker = map.addMarker(new MarkerOptions()
+        map.addMarker(new MarkerOptions()
                 .position(latLng)
                 .title(title)
                 .snippet(subtitle)
@@ -498,7 +503,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
     @SuppressWarnings("MissingPermission")
     private void initializeLocationLayer() {
-        locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap, locationEngine);
+        locationLayerPlugin = new LocationLayerPlugin(mapView, map, locationEngine);
         locationLayerPlugin.setLocationLayerEnabled(true);
         locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
         locationLayerPlugin.setLocationEngine(locationEngine);
@@ -513,7 +518,6 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
         Location lastLocation = locationEngine.getLastLocation();
         if (lastLocation != null) {
-            originLocation = lastLocation;
             setCameraPosition(lastLocation);
         } else {
             locationEngine.addLocationEngineListener(this);
@@ -534,10 +538,8 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d("onLocationChanged", "entered");
 
         if (location != null && mCurrLocationMarker != null) {
-            originLocation = location;
             setCameraPosition(location);
             mCurrLocationMarker.remove();
         }
@@ -547,11 +549,10 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
 
         com.mapbox.mapboxsdk.geometry.LatLng latLng = new com.mapbox.mapboxsdk.geometry.LatLng(DataUtils.latitude, DataUtils.longitude);
 
-
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
 
-        mCurrLocationMarker = mapboxMap.addMarker(markerOptions);
+        mCurrLocationMarker = map.addMarker(markerOptions);
     }
 
     @Override
@@ -565,18 +566,25 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             locationLayerPlugin.onStart();
         }
         mapView.onStart();
+        offlinePlugin.addOfflineDownloadStateChangeListener(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mapView.onResume();
+        this.registerReceiver(offlineDownloadStateReceiver, mIntentfilter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mapView.onPause();
+        if (offlineDownloadStateReceiver != null) {
+            unregisterReceiver(offlineDownloadStateReceiver);
+            offlineDownloadStateReceiver = null;
+        }
+        stopService(OfflineDownloadServiceIntent);
     }
 
     @Override
@@ -589,6 +597,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             locationLayerPlugin.onStop();
         }
         mapView.onStop();
+        offlinePlugin.removeOfflineDownloadStateChangeListener(this);
     }
 
     @Override
@@ -629,59 +638,61 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
         }
     }
 
-    private void downloadRegion() {
-
-        if (getMapPosition() >= 0) {
-
-            t.setText("Map already downloaded!");
-            t.show();
-
-        } else {
-
-            resumeDownload();
-        }
-    }
-
     private void resumeDownload() {
 
-        startProgress();
+        Location location = new Location("");
+        if (map != null && mRegion != null) {
+            location.setLatitude(mRegion.getCenter()[1]);
+            location.setLongitude(mRegion.getCenter()[0]);
+        }
         String styleUrl = map.getStyleUrl();
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-        double minZoom = 0;
-        double maxZoom = 15;
+        if (selectedRegionIndex == 0) {
+            selectedRegionZoom = 14.5;
+        } else {
+            selectedRegionZoom = 16;
+        }
+
+        if (map.getSource("tileSet") != null) {
+            map.removeLayer("dd");
+            map.removeSource("tileSet");
+        }
+        addTileset();
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),
+                location.getLongitude()), selectedRegionZoom));
+
+        double minZoom = 14;
+        double maxZoom = 22;
         float pixelRatio = this.getResources().getDisplayMetrics().density;
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
                 styleUrl, bounds, minZoom, maxZoom, pixelRatio);
 
-        byte[] metadata;
-        try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put(JSON_FIELD_REGION_NAME, mRegion.getName());
-            String json = jsonObject.toString();
-            metadata = json.getBytes(JSON_CHARSET);
-        } catch (Exception exception) {
-            Log.e(TAG, "Failed to encode metadata: " + exception.getMessage());
-            metadata = null;
-        }
+        // Customize the download notification's appearance
+        NotificationOptions notificationOptions = NotificationOptions.builder(this)
+                .smallIconRes(R.drawable.mapbox_logo_icon)
+                .returnActivity(DDNMapActivity.class.getName())
+                .build();
 
-        offlineManager.createOfflineRegion(definition, metadata, new OfflineManager.CreateOfflineRegionCallback() {
+        Runnable delayedTask = new Runnable() {
             @Override
-            public void onCreate(OfflineRegion offlineRegion) {
-                Log.d(TAG, "Offline region created: " + "");
-                DDNMapActivity.this.offlineRegion = offlineRegion;
-                launchDownload();
+            public void run() {
+                // Start downloading the map tiles for offline use
+                offlinePlugin.startDownload(
+                        OfflineDownloadOptions.builder()
+                                .definition(definition)
+                                .metadata(OfflineUtils.convertRegionName(regionName))
+                                .notificationOptions(notificationOptions)
+                                .build()
+                );
             }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "Error: " + error);
-            }
-        });
+        };
+        mainThreadHandler.postDelayed(delayedTask, 5000);
     }
 
     private int getMapPosition() {
+
         int i = 0;
-        if (offlineRegionsList != null) {
+        if (offlineRegionsList.length >= 0) {
 
             for (OfflineRegion offlineRegion : offlineRegionsList) {
                 if (getRegionName(offlineRegion).equalsIgnoreCase(regionName)) {
@@ -693,83 +704,13 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
         return -1;
     }
 
-    private void launchDownload() {
-        offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
-            @Override
-            public void onStatusChanged(OfflineRegionStatus status) {
-                // Compute a percentage
-                double percentage = status.getRequiredResourceCount() >= 0
-                        ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
-                        0.0;
-
-                if (status.isComplete()) {
-                    // Download complete
-                    endProgress(getString(R.string.simple_offline_end_progress_success));
-                    return;
-                } else if (status.isRequiredResourceCountPrecise()) {
-                    // Switch to determinate state
-                    setPercentage((int) Math.round(percentage));
-                }
-
-                // Log what is being currently downloaded
-                Log.d(TAG, String.format("%s/%s resources; %s bytes downloaded.",
-                        String.valueOf(status.getCompletedResourceCount()),
-                        String.valueOf(status.getRequiredResourceCount()),
-                        String.valueOf(status.getCompletedResourceSize())));
-            }
-
-            @Override
-            public void onError(OfflineRegionError error) {
-                Log.e(TAG, "onError reason: " + error.getReason());
-                Log.e(TAG, "onError message: " + error.getMessage());
-            }
-
-            @Override
-            public void mapboxTileCountLimitExceeded(long limit) {
-                Log.e("LIMIT", "Mapbox tile count limit exceeded: " + limit);
-            }
-        });
-
-        // Change the region state
-        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
-    }
-
-    // Progress bar methods
-    private void startProgress() {
-
-        // Start and show the progress bar
-        isEndNotified = false;
-        progressBar.setIndeterminate(true);
-        progressBar.setVisibility(View.VISIBLE);
-
-    }
-
-    private void setPercentage(final int percentage) {
-        progressBar.setIndeterminate(false);
-        progressBar.setProgress(percentage);
-    }
-
-    private void endProgress(final String message) {
-        // Don't notify more than once
-        if (isEndNotified) {
-            return;
-        }
-
-        // Stop and hide the progress bar
-        isEndNotified = true;
-        progressBar.setIndeterminate(false);
-        progressBar.setVisibility(View.GONE);
-
-        t.setText(message);
-        t.show();
-
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.ddn_map, menu);
+        MenuItem download_btn = menu.getItem(0);
         if (!NetworkUtils.isConnectingToInternet(this)) {
-            MenuItem download_btn = menu.getItem(0);
+            download_btn.setVisible(false);
+        } else {
             download_btn.setVisible(false);
         }
         MenuItem checkable = menu.findItem(R.id.action_showlist_dwelling);
@@ -785,14 +726,32 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             finish();
             return true;
         } else if (id == R.id.action_download_map) {
-            downloadRegion();
+
+            if (getMapPosition() >= 0) {
+                Utils.showToast(this, "Map already downloaded!");
+            } else {
+                if (offlineRegionsList.length >= 1) {
+                    offlineRegionsList[0].delete(offlineRegionDeleteCallback);
+                    resumeDownload();
+                } else {
+                    resumeDownload();
+                }
+            }
             return true;
         } else if (id == R.id.action_showlist_dwelling) {
             showAvailableDwelling(item);
             return true;
+        } else if (id == R.id.action_add_parcel) {
+//            addParcel();
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addParcel() {
+        Intent intent = new Intent(this, CreateParcelActivity.class);
+        intent.putExtra("mapboxId", mapbox_id);
+        intent.putExtra("title", regionName);
+        startActivity(intent);
     }
 
     private void showAvailableDwelling(MenuItem item) {
@@ -812,7 +771,6 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             icon = R.drawable.ic_visibility_off_white_24dp;
             hideLayer();
         }
-
         item.setIcon(icon);
     }
 
@@ -847,6 +805,7 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                     }
                 }
             }
+
             if (dwellingFeatures.size() > 0) {
 
                 FeatureCollection featureCollection = FeatureCollection.fromFeatures(dwellingFeatures);
@@ -861,24 +820,25 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
                 map.addLayer(highlightLayer);
 
             } else {
-                t.setText("No dwelling found");
-                t.show();
+                Utils.showToast(this, "No dwelling found");
             }
         }
     }
 
     private String getRegionName(OfflineRegion offlineRegion) {
         // Get the region name from the offline region metadata
-        String regionName;
+        String regionName = null;
+        if (offlineRegion.getID() != 0) {
 
-        try {
-            byte[] metadata = offlineRegion.getMetadata();
-            String json = new String(metadata, JSON_CHARSET);
-            JSONObject jsonObject = new JSONObject(json);
-            regionName = jsonObject.getString(JSON_FIELD_REGION_NAME);
-        } catch (Exception exception) {
-            Log.e(TAG, "Failed to decode metadata: " + exception.getMessage());
-            regionName = String.format(getString(R.string.region_name), offlineRegion.getID());
+            try {
+                byte[] metadata = offlineRegion.getMetadata();
+                String json = new String(metadata, JSON_CHARSET);
+                JSONObject jsonObject = new JSONObject(json);
+                regionName = jsonObject.getString(JSON_FIELD_REGION_NAME);
+            } catch (Exception exception) {
+                Log.e("MetaDataError", "Failed to decode metadata: " + exception.getMessage());
+                regionName = String.format(getString(R.string.region_name), offlineRegion.getID());
+            }
         }
         return regionName;
     }
@@ -898,5 +858,33 @@ public class DDNMapActivity extends AppCompatActivity implements OnMapReadyCallb
             ddnText.setText("Please click on building");
             ddnText.setTextColor(Color.RED);
         }
+    }
+
+    @Override
+    public void onCreate(OfflineDownloadOptions offlineDownload) {
+
+    }
+
+    @Override
+    public void onSuccess(OfflineDownloadOptions offlineDownload) {
+        Utils.showToast(this, "Map downloaded successfully!");
+        notificationManager.cancel(offlineDownload.uuid().intValue());
+        stopService(OfflineDownloadServiceIntent);
+        getOfflineRegionList();
+    }
+
+    @Override
+    public void onCancel(OfflineDownloadOptions offlineDownload) {
+        stopService(OfflineDownloadServiceIntent);
+    }
+
+    @Override
+    public void onError(OfflineDownloadOptions offlineDownload, String error, String message) {
+        Log.d("MapDownloadError:", "onError: " + error + message);
+    }
+
+    @Override
+    public void onProgress(OfflineDownloadOptions offlineDownload, int progress) {
+
     }
 }
